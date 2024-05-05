@@ -1,4 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
 
 class Validation {
@@ -13,7 +13,7 @@ class Validation {
   ) {
     //  value = value!.cleanupWhiteSpace();
     if (value!.isEmpty || value.trim().isEmpty) {
-      return tr('Please Enter Name');
+      return 'Please Enter Name';
     } else {
       return null;
     }
@@ -22,8 +22,8 @@ class Validation {
   static String? minLengthValidator(
       BuildContext context, String value, int minLength) {
     if (value.length < minLength) {
-      return tr(
-          'Enter Min Length For the Field'); //EasyLocalization.of(context)?.pleaseEnterMinLength("$minLength") ??
+      return
+          'Enter Min Length For the Field'; //EasyLocalization.of(context)?.pleaseEnterMinLength("$minLength") ??
 
     } else {
       return null;
@@ -33,8 +33,8 @@ class Validation {
   static String? maxLengthValidator(
       BuildContext context, String value, int maxLength) {
     if (value.length > maxLength) {
-      return tr(
-          'Enter Max Length'); //EasyLocalization.of(context)?.pleaseEnterMinLength("$maxLength") ??" ";
+      return
+          'Enter Max Length'; //EasyLocalization.of(context)?.pleaseEnterMinLength("$maxLength") ??" ";
     } else {
       return null;
     }
@@ -44,8 +44,8 @@ class Validation {
     RegExp mobilePattern = RegExp('^(5)(5|0|3|6|4|9|1|8|7)([0-9]{7})\$');
 
     if (!mobileNumberRegExp.hasMatch(value)) {
-      return tr(
-          'Enter Right Phone Number'); //EasyLocalization.of(context)?.mobilePhoneWrongRegex ?? " ";
+      return
+          'Enter Right Phone Number'; //EasyLocalization.of(context)?.mobilePhoneWrongRegex ?? " ";
     } else {
       return null;
     }
@@ -61,8 +61,8 @@ class Validation {
       }
     });
     if (foundedSpecialCharacter.length > 0) {
-      return tr(
-          'Character Not Valid'); //EasyLocalization.of(context)?.invalidCharacter ?? " ";
+      return
+          'Character Not Valid'; //EasyLocalization.of(context)?.invalidCharacter ?? " ";
     }
     return null;
   }
@@ -70,8 +70,8 @@ class Validation {
   static String? dateTimeValidator(
       BuildContext context, String value, String name) {
     if (DateTime.tryParse(value) == null) {
-      return tr(
-          'Date Time Not Valid'); //EasyLocalization.of(context)?.dateTimeWrongRegex ?? " ";
+      return
+          'Date Time Not Valid'; //EasyLocalization.of(context)?.dateTimeWrongRegex ?? " ";
     }
     return null;
   }
@@ -81,9 +81,9 @@ class Validation {
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(value);
     if (value.isEmpty) {
-      return tr('Please Enter Email');
+      return 'Please Enter Email';
     } else if (!emailValid) {
-      return tr('Please Enter Valid Email');
+      return 'Please Enter Valid Email';
     }
     return null;
   }

@@ -4,7 +4,11 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:questionnaire/data/repository/make_form_template_impl.dart';
 import 'package:questionnaire/domain/repository/makeFormTemplete/make_form_template_repoistory.dart';
 import 'package:questionnaire/domain/usecase/make_form_template_usecase.dart';
+import 'package:questionnaire/screens/Questionaires/viewmodel/questionaires_viewmodel.dart';
+import 'package:questionnaire/screens/add_questioaires/viewmodel/add_questioaires_viewmodel.dart';
+import 'package:questionnaire/screens/forms/viewmodel/forms_viewmodel.dart';
 import 'package:questionnaire/screens/make_form_template/viewmodel/make_form_template_viewmodel.dart';
+import 'package:questionnaire/screens/questionaires_info/viewmodel/questionaires_info_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/data_source/local_data_source.dart';
@@ -71,6 +75,18 @@ Future<void> initServeyAppModule() async {
 
   instance
       .registerFactory<MakeFormTemplateViewModel>(() => MakeFormTemplateViewModel(instance()));
+
+  instance
+      .registerFactory<FormsViewModel>(() => FormsViewModel(instance()));
+
+  instance
+      .registerFactory<QuestionairesViewModel>(() => QuestionairesViewModel(instance()));
+
+  instance
+      .registerFactory<QuestionairesInfoViewModel>(() => QuestionairesInfoViewModel(instance()));
+
+  instance
+      .registerFactory<AddQuestionairesViewModel>(() => AddQuestionairesViewModel(instance()));
   // repository
 
   // instance.registerLazySingleton<AuthRepository>(

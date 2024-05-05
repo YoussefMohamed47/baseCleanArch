@@ -1,4 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -48,7 +48,7 @@ class StateRenderer extends StatelessWidget {
         return _getPopUpDialog(context, [
           _getAnimatedImage(JsonAssets.error),
           _getMessage(message),
-          _getRetryButton(AppStrings.ok.tr(), context)
+          _getRetryButton('', context)
         ]);
       case StateRendererType.fullScreenLoadingState:
         return _getItemsColumn(
@@ -57,7 +57,7 @@ class StateRenderer extends StatelessWidget {
         return _getItemsColumn([
           _getAnimatedImage(JsonAssets.error),
           _getMessage(message),
-          _getRetryButton(AppStrings.retryAgain.tr(), context)
+          _getRetryButton("", context)
         ]);
       case StateRendererType.fullScreenEmptyState:
         return _getItemsColumn(
@@ -69,7 +69,7 @@ class StateRenderer extends StatelessWidget {
           _getAnimatedImage(JsonAssets.success),
           _getMessage(title),
           _getMessage(message),
-          _getRetryButton(AppStrings.ok.tr(), context)
+          _getRetryButton("", context)
         ]);
       default:
         return Container();

@@ -15,7 +15,7 @@ ThemeData getApplicationTheme() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-          primary: ColorManager.primaryLib,
+          backgroundColor: ColorManager.primaryLib,
           textStyle: TextStyle(fontFamily: FontConstants.fontFamily)
           // button text color
           ),
@@ -52,7 +52,7 @@ ThemeData getApplicationTheme() {
         style: ElevatedButton.styleFrom(
             textStyle: getRegularStyle(
                 color: ColorManager.white, fontSize: FontSize.s17),
-            primary: ColorManager.primary,
+            backgroundColor: ColorManager.primary,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSize.s12)))),
 

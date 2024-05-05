@@ -398,19 +398,23 @@
 import 'package:flutter/material.dart';
 import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
-import 'package:sembast/sembast.dart';
+import 'package:questionnaire/presentation/resources/base_page_route.dart';
+import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
+import 'package:shared_module/Widget/app_scaffold.dart';
+import 'package:shared_module/localization/shared.localization.dart';
 
-class DynamicForm extends StatefulWidget {
+class QuestionairesInfoView extends StatefulWidget {
   final String formName;
+  final String customerName;
   final List<FormItem> formItems;
 
-  DynamicForm({required this.formName, required this.formItems});
+  QuestionairesInfoView({required this.formName, required this.customerName, required this.formItems});
 
   @override
-  _DynamicFormState createState() => _DynamicFormState();
+  _QuestionairesInfoViewState createState() => _QuestionairesInfoViewState();
 }
 
-class _DynamicFormState extends State<DynamicForm> {
+class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Map<String, dynamic> _formData = {};
   int _currentQuestionIndex = 0;
@@ -418,46 +422,89 @@ class _DynamicFormState extends State<DynamicForm> {
   @override
   Widget build(BuildContext context) {
     final FormItem currentFormItem = widget.formItems[_currentQuestionIndex];
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.formName),
-      ),
+    return
+
+
+      AppScaffold(
+        pageTitle: "معلومات الاستبيان",
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 14.0),
-        child: Form(
-          key: _formKey,
-          child: ListView.builder(
-            itemCount: widget.formItems.length,
-            itemBuilder: (BuildContext context, int index) {
-              var currentFormItem = widget.formItems[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+        child: Column(
+crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3)
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                child: Text(
+                  "${SharedLocalization
+                      .getLocalization!().customerName} : ${widget.customerName}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            SizedBox(height: 22,),
+            Container(
+              width: double.infinity,
+
+              decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3)
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                child: Text(
+                  "${SharedLocalization
+                      .getLocalization!().surveyFormName} : ${widget.formName}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Expanded(child: SizedBox()),
+            Container(
+              width: double.infinity,
+              height: 51,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    currentFormItem.question,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ElevatedButton(
+                    onPressed:  () {
+                      Navigator.push(
+                          context,
+                          BasePageRoute(
+                              builder: (context) => DynamicForm(
+                                formName: widget.formName ?? '',
+                                formItems:  widget.formItems,
+                              )));
+                    }
+                    ,
+                    child: Container(
+                        width: MediaQuery.of(context).size.width /3.3,
+                        child: Center(child: Text('${SharedLocalization.getLocalization!().next}'))),
                   ),
-                  SizedBox(height: 12,),
-                  // Render input field based on question type
-                  renderInputField(currentFormItem),
-                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed:
+                         () {
+                      Navigator.pop(context);
+                    }
+                        ,
+                    child: Container(
+                        width: MediaQuery.of(context).size.width /3.3,
+                        child: Center(child: Text('${SharedLocalization.getLocalization!().cancel}'))),
+                  ),
                 ],
-              );
-            },
-          ),
+              ),
+            )
+
+          ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_formKey.currentState!.validate()) {
-            _formKey.currentState!.save();
-            // Do something with the form data
-            print(_formData);
-            Navigator.pop(context);
-          }
-        },
-        child: Icon(Icons.save),
-      ),
+
+
     );
   }
 
@@ -688,14 +735,11 @@ class _DynamicFormState extends State<DynamicForm> {
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
-                print("value:..... ${value?.contains(".")}");
-                print("22222:..... ${(value != null)}");
-                print("333:..... ${  double.tryParse(value??'') == null}");
                 if (formItem.isRequired && value!.isEmpty) {
                   return 'This field is required';
                 }
-                if ((value != null) &&
-                (    double.tryParse(value) == null)&&!(value.contains("."))) {
+                if (value != null &&
+                    double.tryParse(value) == null) {
                   return 'Please enter a valid number';
                 }
                 return null;

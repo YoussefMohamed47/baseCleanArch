@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
 import 'package:questionnaire/domain/usecase/make_form_template_usecase.dart';
+import 'package:shared_module/localization/shared.localization.dart';
 
 import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
@@ -24,38 +27,39 @@ class MakeFormTemplateViewModel extends BaseViewModel
   FormItemType selectedQuestionType =FormItemType.ShortText;
 
   bool isRequired=false;
-  FormModel dynamicFormModel = FormModel(formName: "form 1",questions: []);
+  FormModel dynamicFormModel = FormModel(  id: Random().nextInt(100),formName: "",questions: []);
+  TextEditingController formName = TextEditingController();
   List<QuestionTypeModel> questionTypeList = [
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ShortText] ?? 2,
-    'Short Text',
+    "${SharedLocalization.getLocalization!().shortText}",
         FormItemType.ShortText
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.LongText] ?? 1,
-    'Long Text',
+        "${SharedLocalization.getLocalization!().longText}",
         FormItemType.LongText
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.SingleChoice] ?? 3,
-    'Single Choice',
+    '${SharedLocalization.getLocalization!().singleChoice}',
         FormItemType.SingleChoice
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.MultiChoice] ?? 4,
-    'Multi Choice',
+    '${SharedLocalization.getLocalization!().multiChoice}',
         FormItemType.MultiChoice
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Number] ?? 5,
-    'Number',
+    '${SharedLocalization.getLocalization!().number}',
         FormItemType.Number
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Float] ?? 6,
-    'Float',
+    '${SharedLocalization.getLocalization!().float}',
         FormItemType.Float
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Date] ?? 7,
-    'Date',
+    '${SharedLocalization.getLocalization!().date} ',
         FormItemType.Date
     ),
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Time] ?? 8,
-    'Time',
+    '${SharedLocalization.getLocalization!().time}',
         FormItemType.Time
     ),
 
@@ -80,11 +84,18 @@ class MakeFormTemplateViewModel extends BaseViewModel
   // input
   @override
   Future start() async {
+
+  }
+
+  startViewModel(FormModel form) {
+
     if (_makeFormTemplateStreamController.isClosed) {
       _makeFormTemplateStreamController =
       StreamController<MakeFormTemplateUseCaseModel>.broadcast();
     }
-  //  await getTermsAndConditions();
+    dynamicFormModel = form;
+    formName.text= dynamicFormModel.formName ?? '';
+    //  await getTermsAndConditions();
     postDataToView();
   }
 

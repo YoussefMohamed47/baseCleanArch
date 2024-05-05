@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:questionnaire/app/constants.dart';
+import 'package:questionnaire/screens/forms/view/forms_view.dart';
 import 'package:questionnaire/screens/make_form_template/view/make_form_template_view.dart';
 
 import 'app/Caching/AppResponseCacheService.dart';
@@ -29,7 +29,7 @@ class MyHttpOverrides extends HttpOverrides {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await EasyLocalization.ensureInitialized();
+  //await EasyLocalization.ensureInitialized();
 
   await initServeyAppModule();
   await AppResponseCacheService.initInstance();
@@ -50,14 +50,8 @@ Future<void> main() async {
   ]);
   HttpOverrides.global = MyHttpOverrides();
 
-  runApp(EasyLocalization(
-      supportedLocales: const [ARABIC_LOCAL, ENGLISH_LOCAL],
-      path: ASSET_PATH_LOCALISATIONS,
-      useOnlyLangCode: false,
-      saveLocale: true,
-      startLocale: ENGLISH_LOCAL,
-      child: Phoenix(
-          child: const MakeFormTemplate())));
+  runApp(Phoenix(
+      child:  FormsScreen(isQuestionnaires: false,)));
 }
 
 

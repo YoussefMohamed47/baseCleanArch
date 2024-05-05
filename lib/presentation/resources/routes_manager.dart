@@ -1,5 +1,4 @@
 import 'package:questionnaire/presentation/resources/strings_manager.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
@@ -42,9 +41,9 @@ class RouteGenerator {
     return MaterialPageRoute(
         builder: (_) => Scaffold(
               appBar: AppBar(
-                title: Text(AppStrings.noRouteFound.tr()),
+                title: Text(""),
               ),
-              body: Center(child: Text(AppStrings.noRouteFound.tr())),
+              body: Center(child: Text("")),
             ));
   }
 }
