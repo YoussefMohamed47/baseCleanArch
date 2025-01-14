@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:questionnaire/app/app_enums.dart';
+import 'package:questionnaire/domain/model/client_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
@@ -29,6 +30,8 @@ class MakeFormTemplateViewModel extends BaseViewModel
   bool isRequired=false;
   FormModel dynamicFormModel = FormModel(  id: Random().nextInt(100),formName: "",questions: []);
   TextEditingController formName = TextEditingController();
+  ClientItemModel? selectedFormId;
+
   List<QuestionTypeModel> questionTypeList = [
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ShortText] ?? 2,
     "${SharedLocalization.getLocalization!().shortText}",
@@ -62,6 +65,13 @@ class MakeFormTemplateViewModel extends BaseViewModel
     '${SharedLocalization.getLocalization!().time}',
         FormItemType.Time
     ),
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Attachment] ?? 9,
+    '${SharedLocalization.getLocalization!().attachment}',
+        FormItemType.Attachment
+    ),   QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
+    '${SharedLocalization.getLocalization!().location}',
+        FormItemType.Location
+    ),
 
 
   ];
@@ -87,6 +97,11 @@ class MakeFormTemplateViewModel extends BaseViewModel
 
   }
 
+  List<ClientItemModel> allClients = [
+    ClientItemModel(id: 1, name: 'عميل رقم ١'),
+    ClientItemModel(id: 2, name: 'عميل رقم ٢'),
+    ClientItemModel(id: 3, name: 'عميل رقم ٣'),
+  ];
   startViewModel(FormModel form) {
 
     if (_makeFormTemplateStreamController.isClosed) {
@@ -94,7 +109,15 @@ class MakeFormTemplateViewModel extends BaseViewModel
       StreamController<MakeFormTemplateUseCaseModel>.broadcast();
     }
     dynamicFormModel = form;
+    print("dynamicFormModel.customerName ${dynamicFormModel.customerName?.name}");
     formName.text= dynamicFormModel.formName ?? '';
+    //selectedFormId= allClients[0];//dynamicFormModel.customerName;
+
+    if(dynamicFormModel.customerName?.name != null){
+      selectedFormId = allClients.firstWhere(
+            (client) => client.id == dynamicFormModel.customerName?.id,);
+    }
+
     //  await getTermsAndConditions();
     postDataToView();
   }

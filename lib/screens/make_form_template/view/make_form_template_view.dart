@@ -3,18 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:questionnaire/app/app_enums.dart';
-import 'package:questionnaire/app/app_shared.dart';
-import 'package:questionnaire/app/constants.dart';
 import 'package:questionnaire/app/di.dart';
 import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/question_item_model.dart';
-import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/presentation/resources/color_manager.dart';
-import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
 import 'package:questionnaire/screens/forms/viewmodel/forms_viewmodel.dart';
 import 'package:questionnaire/screens/make_form_template/viewmodel/make_form_template_viewmodel.dart';
 import 'package:questionnaire/utils/colors/appColors.dart';
@@ -22,6 +16,11 @@ import 'package:shared_module/localization/shared.localization.dart';
 import 'package:shared_module/service/custom.validators.dart';
 import 'package:shared_module/theme/app-input-decoration.theme.dart';
 import 'package:shared_module/theme/app.theme.dart';
+
+import '../../../domain/model/client_model.dart' ;
+
+
+
 class BuildFormsScreens extends StatefulWidget {
   FormModel form;
   bool isEdit;
@@ -36,6 +35,9 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
   final MakeFormTemplateViewModel _viewModel =
   instance<MakeFormTemplateViewModel>();
+
+
+
   //QuestionairesViewModel
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   selectQuestionType(){
@@ -181,15 +183,16 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
         print("selectedQuestionType ======= $selectedQuestionType");
         return FractionallySizedBox(
           heightFactor: 0.8,
-          child: StatefulBuilder(
-            builder: (BuildContext context, setState) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust for the keyboard
+            ),
+            child: StatefulBuilder(
+              builder: (BuildContext context, setState) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
                     child: Container(
                       color: Colors.white,
                       child: SingleChildScrollView(
@@ -325,15 +328,13 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                           BorderRadius.circular(
                                               4.0),
                                           borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .errorColor,
+                                            color: ColorManager.error,
                                           )),
                                       errorBorder: OutlineInputBorder(
                                           borderRadius:
                                           BorderRadius.circular(4.0),
                                           borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .errorColor,
+                                            color: ColorManager.error,
                                           )),
                                     )),
                               ),
@@ -464,15 +465,13 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     BorderRadius.circular(
                                                         4.0),
                                                     borderSide: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .errorColor,
+                                                      color: ColorManager.error,
                                                     )),
                                                 errorBorder: OutlineInputBorder(
                                                     borderRadius:
                                                     BorderRadius.circular(4.0),
                                                     borderSide: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .errorColor,
+                                                      color: ColorManager.error,
                                                     )),
                                               )),
                                         ),
@@ -541,49 +540,49 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                       ),
                     ),
                   ),
-                ),
 
-                Container(
-                  color: AppTheme.whiteColor,
-                  child: GestureDetector(
-                    onTap: (){
-                      if(formkey.currentState?.validate() ?? false){
-                        _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
-                        _viewModel.dynamicFormModel.questions.add(QuestionItemModel(
-                            question: questionController.text,
-                            questionType: _viewModel.selectedQuestionType,
-                            options: options,
-                            isRequired: _viewModel.isRequired,
-                            validators: []
-                        ));
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                      }
+                  Container(
+                    color: AppTheme.whiteColor,
+                    child: GestureDetector(
+                      onTap: (){
+                        if(formkey.currentState?.validate() ?? false){
+                          _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
+                          _viewModel.dynamicFormModel.questions.add(QuestionItemModel(
+                              question: questionController.text,
+                              questionType: _viewModel.selectedQuestionType,
+                              options: options,
+                              isRequired: _viewModel.isRequired,
+                              validators: []
+                          ));
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        }
 
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 14),
-                      child: Container(
-                        width: double.infinity,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentColor,
-                           borderRadius: BorderRadius.circular(8)
-                        ),
-                        child: Center(
-                          child: Text(SharedLocalization.getLocalization!().surveyAddQuestion,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.whiteColor
-                            ),),
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 14),
+                        child: Container(
+                          width: double.infinity,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentColor,
+                             borderRadius: BorderRadius.circular(8)
+                          ),
+                          child: Center(
+                            child: Text(SharedLocalization.getLocalization!().surveyAddQuestion,
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.whiteColor
+                              ),),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                )
+                  )
 
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -741,15 +740,13 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                           BorderRadius.circular(
                                               4.0),
                                           borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .errorColor,
+                                            color: ColorManager.error,
                                           )),
                                       errorBorder: OutlineInputBorder(
                                           borderRadius:
                                           BorderRadius.circular(4.0),
                                           borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .errorColor,
+                                            color: ColorManager.error,
                                           )),
                                     )),
                               ),
@@ -880,15 +877,13 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     BorderRadius.circular(
                                                         4.0),
                                                     borderSide: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .errorColor,
+                                                      color: ColorManager.error,
                                                     )),
                                                 errorBorder: OutlineInputBorder(
                                                     borderRadius:
                                                     BorderRadius.circular(4.0),
                                                     borderSide: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .errorColor,
+                                                      color: ColorManager.error,
                                                     )),
                                               )),
                                         ),
@@ -1007,6 +1002,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
 
 
+  // Currently selected form
+
   @override
   void initState() {
     super.initState();
@@ -1021,6 +1018,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.whiteColor,
       body: SafeArea(
         child:
@@ -1047,14 +1045,18 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                             ElevatedButton(
                               onPressed: () {
                                 if(_formKey.currentState!.validate()){
+
+                                  print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
                                   if(widget.isEdit){
                                     allForms[widget.formIndex ?? 0]=FormModel(
                                         id: Random().nextInt(100),
+                                        customerName: _viewModel.selectedFormId,
                                         formName: _viewModel.formName.text,
                                         questions: _viewModel.dynamicFormModel.questions);
                                   }else{
                                     allForms.add(FormModel(
                                         id: Random().nextInt(100),
+                                        customerName: _viewModel.selectedFormId,
                                         formName: _viewModel.formName.text,
                                         questions: _viewModel.dynamicFormModel.questions));
                                   }
@@ -1072,29 +1074,90 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                       ),
                       Form(
                         key: _formKey,
-                        child: TextFormField(
-                          controller: _viewModel.formName,
-                          decoration:
-                          AppInputDecorationTheme.standardInput(
-                            label: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 5),
-                              child: Text(
-                                SharedLocalization
-                                    .getLocalization!().surveyFormName,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _viewModel.formName,
+                              decoration:
+                              AppInputDecorationTheme.standardInput(
+                                label: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5),
+                                  child: Text(
+                                    SharedLocalization
+                                        .getLocalization!().surveyFormName,
+                                  ),
+                                ),
+                                hintText: SharedLocalization
+                                    .getLocalization!().surveyWriteFormName,
+                                isEnabled: false,
+                              ),
+                              validator: (value) {
+                                return CustomValidators.isEmptyValidator(
+                                    value);
+                              },
+                              onChanged: (String val){
+                                _viewModel.dynamicFormModel.formName =val;
+                              },
+                            ),
+                            //SizedBox(height: 12,),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                border: Border.all(color: Colors.grey.withOpacity(0.6)),
+                              ),
+                              padding: const EdgeInsets.only(left: 8, right: 8, top: 22),
+                              child: DropdownButtonFormField<ClientItemModel?>(
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.grey.withOpacity(0.2),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.transparent),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.transparent),
+                                  ),
+                                  border: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.transparent),
+                                  ),
+                                ),
+                                iconSize: 20,
+                                style: TextStyle(fontSize: 16),
+                                hint: Text(
+                                  SharedLocalization.getLocalization!().selectClient,
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                value: _viewModel.selectedFormId,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _viewModel.selectedFormId = value;
+                                  });
+                                },
+                                items: _viewModel.allClients.map((formItem) {
+                                  return DropdownMenuItem<ClientItemModel?>(
+                                    value: formItem,
+                                    child: Text(
+                                      formItem.name,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                                validator: (value) {
+                                  if (value == null) {
+                                    return SharedLocalization.getLocalization!().pleaseSelectAClient;
+                                  }
+                                  return null; // Validation passes
+                                },
                               ),
                             ),
-                            hintText: SharedLocalization
-                                .getLocalization!().surveyWriteFormName,
-                            isEnabled: false,
-                          ),
-                          validator: (value) {
-                            return CustomValidators.isEmptyValidator(
-                                value);
-                          },
-                          onChanged: (String val){
-                            _viewModel.dynamicFormModel.formName =val;
-                          },
+
+
+
+
+                          ],
                         ),
                       ),
                       ListView.builder(
@@ -1144,12 +1207,15 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                          crossAxisAlignment: CrossAxisAlignment.center,
                                          mainAxisAlignment: MainAxisAlignment.start,
                                          children: [
-                                           Text("${_viewModel.dynamicFormModel.questions[index].question}",
-                                             style: TextStyle(
-                                                 color: Colors.black,
+                                           Container(
+                                             width: MediaQuery.of(context).size.width * 0.6,
+                                             child: Text("${_viewModel.dynamicFormModel.questions[index].question}",
+                                               style: TextStyle(
+                                                   color: Colors.black,
 
-                                                 fontSize: 16,
-                                                 fontWeight: FontWeight.bold
+                                                   fontSize: 16,
+                                                   fontWeight: FontWeight.bold
+                                               ),
                                              ),
                                            ),
                                            SizedBox(width: 6,),

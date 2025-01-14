@@ -397,6 +397,7 @@
 //
 import 'package:flutter/material.dart';
 import 'package:questionnaire/app/app_enums.dart';
+import 'package:questionnaire/domain/model/client_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
@@ -405,7 +406,7 @@ import 'package:shared_module/localization/shared.localization.dart';
 
 class QuestionairesInfoView extends StatefulWidget {
   final String formName;
-  final String customerName;
+  final ClientItemModel? customerName;
   final List<FormItem> formItems;
 
   QuestionairesInfoView({required this.formName, required this.customerName, required this.formItems});
@@ -442,7 +443,7 @@ crossAxisAlignment: CrossAxisAlignment.start,
                 padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
                 child: Text(
                   "${SharedLocalization
-                      .getLocalization!().customerName} : ${widget.customerName}",
+                      .getLocalization!().customerName} : ${widget.customerName?.name ?? ''}",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:questionnaire/app/di.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
+import 'package:questionnaire/presentation/resources/color_manager.dart';
 import 'package:questionnaire/screens/Questionaires/viewmodel/questionaires_viewmodel.dart';
 import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
 import 'package:questionnaire/screens/forms/viewmodel/forms_viewmodel.dart';
@@ -19,6 +20,7 @@ import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
 
 import '../../../app/app_enums.dart';
+import '../../../domain/model/client_model.dart';
 import '../../../domain/model/make_form_template/form_model.dart';
 
 
@@ -42,7 +44,7 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
 
   final formkey = GlobalKey<FormState>();
   TextEditingController customerNameController = TextEditingController();
-  FormModel temp =FormModel(id: Random().nextInt(100),questions: [],formName: "",customerName: '');
+  FormModel temp =FormModel(id: Random().nextInt(100),questions: [],formName: "",customerName: null);
 
   @override
   void initState() {
@@ -62,16 +64,7 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
             .getLocalization!().surveySearchQuestionnaires,
         pageTitle: SharedLocalization
             .getLocalization!().surveyQuestionnaires,
-        onSearchFunction: (value) async {
-          // _appService.cancel();
-          // await Future.delayed(const Duration(milliseconds: 100));
-          // _inputViewModel.filterText = value;
-          // _pagingController.refresh();
-        },
-        onFilterFunction: (){
 
-        },
-        isFilteringListener: isFiltering,
         body:
         WillPopScope(
           onWillPop: () async{
@@ -97,148 +90,161 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                           padding: const EdgeInsets.only(top: 16),
                           child:  Column(
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    //  borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey.withOpacity(0.6))
-                                ),
-                                padding: EdgeInsets.only(left: 8 ,right: 8 , top: 0),
-                                child: Form(
-                                  key: formkey,
-                                  child: TextFormField(
-                                      controller: customerNameController,
-                                      keyboardType: TextInputType.multiline,
-                                      maxLines: 6,
-                                      minLines: 1,
-                                      autofocus: false,
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize:  16),
-                                      inputFormatters: [
-                                        // LengthLimitingTextInputFormatter(
-                                        //     AppConsts.chatMessageMaxLength),
-                                      ],
-                                      onChanged: (value) {
-                                        temp.customerName = value;
-                                      },
-                                      onTap: () {
-
-                                      },
-                                      validator: (val){
-                                        if(val?.isEmpty ?? false){
-                                          return SharedLocalization.getLocalization!().surveyFiledRequired;
-                                        }
-                                        return null;
-                                      },
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        errorStyle: TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                        errorMaxLines: 2,
-                                        hintText:
-                                        SharedLocalization.getLocalization!().surveyWriteCustomerName,
-                                        hintStyle: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize:
-                                            16),
-
+                              // Container(
+                              //   decoration: BoxDecoration(
+                              //       color: Colors.white,
+                              //       //  borderRadius: BorderRadius.circular(8),
+                              //       border: Border.all(color: Colors.grey.withOpacity(0.6))
+                              //   ),
+                              //   padding: EdgeInsets.only(left: 8 ,right: 8 , top: 0),
+                              //   child: Form(
+                              //     key: formkey,
+                              //     child: TextFormField(
+                              //         controller: customerNameController,
+                              //         keyboardType: TextInputType.multiline,
+                              //         maxLines: 6,
+                              //         minLines: 1,
+                              //         autofocus: false,
+                              //         style: TextStyle(
+                              //             color: Colors.black,
+                              //             fontSize:  16),
+                              //         inputFormatters: [
+                              //           // LengthLimitingTextInputFormatter(
+                              //           //     AppConsts.chatMessageMaxLength),
+                              //         ],
+                              //         onChanged: (value) {
+                              //           temp.customerName = ClientItemModel(
+                              //             id: 0,name: value
+                              //           )
+                              //
+                              //               ;
+                              //         },
+                              //         onTap: () {
+                              //
+                              //         },
+                              //         validator: (val){
+                              //           if(val?.isEmpty ?? false){
+                              //             return SharedLocalization.getLocalization!().surveyFiledRequired;
+                              //           }
+                              //           return null;
+                              //         },
+                              //         decoration: InputDecoration(
+                              //           border: InputBorder.none,
+                              //           errorStyle: TextStyle(
+                              //             fontSize: 14,
+                              //           ),
+                              //           errorMaxLines: 2,
+                              //           hintText:
+                              //           SharedLocalization.getLocalization!().surveyWriteCustomerName,
+                              //           hintStyle: TextStyle(
+                              //               color: Colors.grey,
+                              //               fontSize:
+                              //               16),
+                              //
+                              //           filled: true,
+                              //           contentPadding: EdgeInsets.only(
+                              //               top: 4, left: 6, right: 6),
+                              //           // suffixIcon: Row(
+                              //           //   mainAxisAlignment: MainAxisAlignment.spaceBetween, // added line
+                              //           //   mainAxisSize: MainAxisSize.min, // added line
+                              //           //   children: [
+                              //           //
+                              //           //
+                              //           //
+                              //           //   ],
+                              //           // ),
+                              //
+                              //           fillColor:
+                              //           Colors.white.withOpacity(0.2),
+                              //           enabledBorder: OutlineInputBorder(
+                              //             borderRadius:
+                              //             BorderRadius.circular(4.0),
+                              //             borderSide:  BorderSide(
+                              //               color: Colors.grey.withOpacity(0.3),
+                              //             ),
+                              //           ),
+                              //           focusedBorder: OutlineInputBorder(
+                              //             borderRadius:
+                              //             BorderRadius.circular(4.0),
+                              //             borderSide:  BorderSide(
+                              //               color: Colors.grey.withOpacity(0.3),
+                              //             ),
+                              //           ),
+                              //           focusedErrorBorder:
+                              //           OutlineInputBorder(
+                              //               borderRadius:
+                              //               BorderRadius.circular(
+                              //                   4.0),
+                              //               borderSide: BorderSide(
+                              //                 color: ColorManager.error,
+                              //               )),
+                              //           errorBorder: OutlineInputBorder(
+                              //               borderRadius:
+                              //               BorderRadius.circular(4.0),
+                              //               borderSide: BorderSide(
+                              //                 color: ColorManager.error,
+                              //               )),
+                              //         )),
+                              //   ),
+                              // ),
+                              Form(
+                                key: formkey,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      //  borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.grey.withOpacity(0.6))
+                                  ),
+                                  padding: EdgeInsets.only(left: 8 ,right: 8 , top: 22),
+                                  child: DropdownButtonFormField<int?>(
+                                      decoration:  InputDecoration(
                                         filled: true,
-                                        contentPadding: EdgeInsets.only(
-                                            top: 4, left: 6, right: 6),
-                                        // suffixIcon: Row(
-                                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween, // added line
-                                        //   mainAxisSize: MainAxisSize.min, // added line
-                                        //   children: [
-                                        //
-                                        //
-                                        //
-                                        //   ],
-                                        // ),
-
-                                        fillColor:
-                                        Colors.white.withOpacity(0.2),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(4.0),
-                                          borderSide:  BorderSide(
-                                            color: Colors.grey.withOpacity(0.3),
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(4.0),
-                                          borderSide:  BorderSide(
-                                            color: Colors.grey.withOpacity(0.3),
-                                          ),
-                                        ),
-                                        focusedErrorBorder:
-                                        OutlineInputBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(
-                                                4.0),
-                                            borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .errorColor,
-                                            )),
-                                        errorBorder: OutlineInputBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(4.0),
-                                            borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .errorColor,
-                                            )),
-                                      )),
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    //  borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey.withOpacity(0.6))
-                                ),
-                                padding: EdgeInsets.only(left: 8 ,right: 8 , top: 22),
-                                child: DropdownButtonFormField<int?>(
-                                    decoration:  InputDecoration(
-                                      filled: true,
-                                      fillColor: Colors.grey.withOpacity(0.2),
-                                      border: InputBorder.none,
-                                    ),
-                                    iconSize:  20,
-                                    // icon: SvgPicture.asset(
-                                    //     Assets.assetsSvgImagesIconAwesomeMapMarkerAlt.path),
-                                    value: _viewModel.selectedQuestionType,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
-                                    hint: Text(
-                                      //"surveySelectQuestionType" : "Select Question Type",
-                                      SharedLocalization.getLocalization!().surveySelectForm,
+                                        fillColor: Colors.grey.withOpacity(0.2),
+                                        border: InputBorder.none,
+                                      ),
+                                      iconSize:  20,
+                                      // icon: SvgPicture.asset(
+                                      //     Assets.assetsSvgImagesIconAwesomeMapMarkerAlt.path),
+                                      value: _viewModel.selectedQuestionType,
                                       style: TextStyle(
                                         fontSize: 16,
                                       ),
-                                    ),
-                                    onChanged: (value) {
-                                      if (_viewModel.selectedQuestionType != value) {
-                                        _viewModel.selectedQuestionType = value;
-                                        FormModel selectedForm = allForms.where((element) => element.id==value).first;
-                                        temp.id =Random().nextInt(100);
-                                        temp.formName=selectedForm.formName;
-                                        temp.questions=selectedForm.questions;
-                                      }
-                                    },
-                                    items: List.generate(
-                                      allForms.length,
-                                          (index) => DropdownMenuItem(
-                                        child: Text(
-                                          allForms[index].formName ??'',
-                                          style: TextStyle(
-                                              color: Colors.black, fontSize: 16),
+                                      hint: Text(
+                                        //"surveySelectQuestionType" : "Select Question Type",
+                                        SharedLocalization.getLocalization!().surveySelectForm,
+                                        style: TextStyle(
+                                          fontSize: 16,
                                         ),
-                                        value: allForms[index].id,
                                       ),
-                                    )),
+                                      onChanged: (value) {
+                                        if (_viewModel.selectedQuestionType != value) {
+                                          _viewModel.selectedQuestionType = value;
+                                          FormModel selectedForm = allForms.where((element) => element.id==value).first;
+                                          temp.id =Random().nextInt(100);
+                                          temp.formName=selectedForm.formName;
+                                          temp.customerName=selectedForm.customerName;
+                                          temp.questions=selectedForm.questions;
+                                        }
+                                      },
+                                      validator: (value) {
+                                        if (value == null) {
+                                          return SharedLocalization.getLocalization!().requiredFields;
+                                        }
+                                        return null; // Validation passes
+                                      },
+
+                                      items: List.generate(
+                                        allForms.length,
+                                            (index) => DropdownMenuItem(
+                                          child: Text(
+                                            allForms[index].formName ??'',
+                                            style: TextStyle(
+                                                color: Colors.black, fontSize: 16),
+                                          ),
+                                          value: allForms[index].id,
+                                        ),
+                                      )),
+                                ),
                               ),
                             ],
                           ),
@@ -256,6 +262,7 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                         // addQuestionModel( _viewModel.selectedQuestionType );
                         if(formkey.currentState?.validate() ?? false){
                           allQuestionaires.add(temp);
+                          print("gjhkjlhj ${allQuestionaires.length}");
                           Navigator.pop(context);
                         }
 

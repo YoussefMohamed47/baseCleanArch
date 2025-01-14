@@ -8,7 +8,9 @@ enum FormItemType
   Number,
   Float,
   Date,
-  Time
+  Time,
+  Attachment,
+  Location
 }
 class FormItemTypeEnum {
   static Map<FormItemType, int> toInt = {
@@ -20,6 +22,8 @@ class FormItemTypeEnum {
     FormItemType.Float: 6,
     FormItemType.Date: 7,
     FormItemType.Time: 8,
+    FormItemType.Attachment: 9,
+    FormItemType.Location: 10,
   };
 
   static Map<int, FormItemType> toEnum = {
@@ -31,6 +35,8 @@ class FormItemTypeEnum {
     6: FormItemType.Float,
     7: FormItemType.Date,
     8: FormItemType.Time,
+    9: FormItemType.Attachment,
+    10: FormItemType.Location,
   };
 }
 

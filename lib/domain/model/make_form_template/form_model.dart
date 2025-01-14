@@ -3,10 +3,12 @@ import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamic_form_validator.dart';
 import 'package:questionnaire/domain/model/make_form_template/question_item_model.dart';
 
+import '../client_model.dart';
+
 class FormModel {
   int id;
   String? formName;
-  String? customerName;
+  ClientItemModel? customerName;
   List<QuestionItemModel> questions = [];
 
   FormModel(

@@ -51,7 +51,17 @@ Future<void> main() async {
   HttpOverrides.global = MyHttpOverrides();
 
   runApp(Phoenix(
-      child:  FormsScreen(isQuestionnaires: false,)));
+      child:
+
+      ScreenUtilInit(
+        designSize: const Size(360, 690),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) {
+          return FormsScreen(isQuestionnaires: false,);
+        },
+      )
+      ));
 }
 
 

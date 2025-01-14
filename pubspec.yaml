@@ -54,6 +54,9 @@ dependencies:
   rxdart: ^0.27.7
   #textfield_datepicker: 0.2.0 #^0.2.0
   checkbox_grouped: ^2.0.0
+  image_picker:
+  file_picker:
+
 
 
 dev_dependencies:

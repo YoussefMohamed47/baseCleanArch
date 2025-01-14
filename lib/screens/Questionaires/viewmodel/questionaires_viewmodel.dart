@@ -51,7 +51,6 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
       _questionairesStreamController =
       StreamController<QuestionairesUseCaseModel>.broadcast();
     }
-    //  await getTermsAndConditions();
     postDataToView();
   }
 

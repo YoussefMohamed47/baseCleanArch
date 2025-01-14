@@ -20,7 +20,9 @@ import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
 
 import '../../../app/app_enums.dart';
+import '../../../domain/model/client_model.dart';
 import '../../../domain/model/make_form_template/form_model.dart';
+import '../../../presentation/resources/color_manager.dart';
 
 
 class QuestionairesView extends StatefulWidget {
@@ -41,7 +43,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
   addQuestionaires(QuestionairesUseCaseModel? data){
     final formkey = GlobalKey<FormState>();
     TextEditingController customerNameController = TextEditingController();
-    FormModel temp =FormModel(id: Random().nextInt(100),questions: [],formName: "",customerName: '');
+    FormModel temp =FormModel(id: Random().nextInt(100),questions: [],formName: "",customerName: null);
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -104,7 +106,8 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                             //     AppConsts.chatMessageMaxLength),
                                           ],
                                           onChanged: (value) {
-                                            temp.customerName = value;
+                                            temp.customerName =
+                                                ClientItemModel(id: 0, name: value);
                                           },
                                           onTap: () {
 
@@ -163,15 +166,13 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                                 BorderRadius.circular(
                                                     4.0),
                                                 borderSide: BorderSide(
-                                                  color: Theme.of(context)
-                                                      .errorColor,
+                                                  color: ColorManager.error,
                                                 )),
                                             errorBorder: OutlineInputBorder(
                                                 borderRadius:
                                                 BorderRadius.circular(4.0),
                                                 borderSide: BorderSide(
-                                                  color: Theme.of(context)
-                                                      .errorColor,
+                                                  color: ColorManager.error
                                                 )),
                                           )),
                                     ),
@@ -279,16 +280,32 @@ class _QuestionairesViewState extends State<QuestionairesView> {
       _viewModel.postDataToView();
     });
   }
-
+  List<FormModel> localQuestionnaires=[];
+  ValueNotifier<List<FormModel>> filteredQuestionnaires = ValueNotifier([]);
 
   @override
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _viewModel.start();
+      localQuestionnaires=allQuestionaires;
+      filteredQuestionnaires.value=allQuestionaires;
     });
   }
 
+  List<FormModel> searchForms(String searchKey) {
+    final lowerKey = searchKey.toLowerCase();
+    return localQuestionnaires.where((form) {
+      final matchesId = form.id.toString().contains(searchKey);
+      final matchesFormName = form.formName?.toLowerCase().contains(lowerKey) ?? false;
+      final matchesClientName = form.customerName?.name.toLowerCase().contains(lowerKey) ?? false;
+
+      // Check if the searchKey matches the index
+      final matchesIndex = (localQuestionnaires.indexOf(form)+1).toString() == searchKey;
+
+      return matchesId || matchesFormName || matchesClientName || matchesIndex;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -300,139 +317,147 @@ class _QuestionairesViewState extends State<QuestionairesView> {
       pageTitle: SharedLocalization
           .getLocalization!().surveyQuestionnaires,
       onSearchFunction: (value) async {
-        // _appService.cancel();
-        // await Future.delayed(const Duration(milliseconds: 100));
-        // _inputViewModel.filterText = value;
-        // _pagingController.refresh();
+        if (value.trim() == '') {
+          filteredQuestionnaires.value = localQuestionnaires;
+        } else {
+          filteredQuestionnaires.value = searchForms(value);
+        }
       },
-      onFilterFunction: (){
-
-      },
-      isFilteringListener: isFiltering,
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            //
-            allQuestionaires.isEmpty ?
-            SizedBox(
-              height: MediaQuery.of(context).size.height -200,
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  NoItemsFoundIndicatorWidget()
-                ],
-              ),
-            ) :
-            ListView.builder(
-                itemCount: allQuestionaires.length,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemBuilder: (context ,index){
-                  return GestureDetector(
-                    onTap: (){
+        child:
 
 
-                      if(widget.isQuestionnaires){
-                        List<FormItem> temp = [];
-                        for(int i =0 ; i < allQuestionaires[index].questions.length ; i ++){
-                          List<String> options = [];
-                          for(int o =0 ; o < allQuestionaires[index].questions[i].options.length ; o ++){
-                            for(int j =0 ; j < allQuestionaires[index].questions[i].options[o].optionController.text.split(",").length ; j ++){
-                              options.add(allQuestionaires[index].questions[i].options[o].optionController.text.split(",")[j]);
+        ValueListenableBuilder<List<FormModel>>(
+          valueListenable: filteredQuestionnaires,
+          builder: (context, forms, child) {
+            return Column(
+              children: [
+                //
+                forms.isEmpty ?
+                SizedBox(
+                  height:600,
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      NoItemsFoundIndicatorWidget()
+                    ],
+                  ),
+                ) :
+                ListView.builder(
+                    itemCount: forms.length,
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (context ,index){
+                      return GestureDetector(
+                        onTap: (){
+
+
+                          if(widget.isQuestionnaires){
+                            List<FormItem> temp = [];
+                            for(int i =0 ; i < forms[index].questions.length ; i ++){
+                              List<String> options = [];
+                              for(int o =0 ; o < forms[index].questions[i].options.length ; o ++){
+                                for(int j =0 ; j < forms[index].questions[i].options[o].optionController.text.split(",").length ; j ++){
+                                  options.add(forms[index].questions[i].options[o].optionController.text.split(",")[j]);
+                                }
+                              }
+                              temp.add(FormItem(question:forms[index].questions[i].question ?? '',
+                                  questionType: forms[index].questions[i].questionType ?? FormItemType.ShortText,
+                                  isRequired:  forms[index].questions[i].isRequired,
+                                  options:options
+                              ));
                             }
+                            // Navigator.push(
+                            //     context,
+                            //     BasePageRoute(
+                            //         builder: (context) => DynamicForm(
+                            //           formName: data.allQuestionaires[index].formName ?? '',
+                            //           formItems:  temp,
+                            //
+                            //         )));
+                            Navigator.push(
+                                context,
+                                BasePageRoute(
+                                    builder: (context) => QuestionairesInfoView(
+                                      formName: forms[index].formName ?? '',
+                                      formItems:  temp,
+                                      customerName:forms[index].customerName,
+                                    )));
+                          }else{
+
                           }
-                          temp.add(FormItem(question:allQuestionaires[index].questions[i].question ?? '',
-                              questionType: allQuestionaires[index].questions[i].questionType ?? FormItemType.ShortText,
-                              isRequired:  allQuestionaires[index].questions[i].isRequired,
-                              options:options
-                          ));
-                        }
-                        // Navigator.push(
-                        //     context,
-                        //     BasePageRoute(
-                        //         builder: (context) => DynamicForm(
-                        //           formName: data.allQuestionaires[index].formName ?? '',
-                        //           formItems:  temp,
-                        //
-                        //         )));
+                        },
+                        child: PrimaryContainer(
 
-                        Navigator.push(
-                            context,
-                            BasePageRoute(
-                                builder: (context) => QuestionairesInfoView(
-                                  formName: allQuestionaires[index].formName ?? '',
-                                  formItems:  temp,
-                                  customerName: allQuestionaires[index].customerName ??'',
-
-                                )));
-                      }else{
-
-                      }
-                    },
-                    child: PrimaryContainer(
-
-                      child: Container(
-                        //height: 120,
-                        width: double.infinity,
-                        // color: Colors.white,
-                        child:Padding(
-                          padding:  EdgeInsets.symmetric(vertical: 10.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
+                          child: Container(
+                            //height: 120,
+                            width: double.infinity,
+                            // color: Colors.white,
+                            child:Padding(
+                              padding:  EdgeInsets.symmetric(vertical: 10.0),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border:
-                                        Border.all(color: AppTheme.borderColor),
-                                        color:  AppTheme.orangeColor
-                                    ),
-                                    child: Icon(
-                                      SharedIcons.invoiceIcon,
-                                      color: AppTheme.whiteColor,
-                                      size: 25,),
-
-                                  ),
-                                  SizedBox(width: 8,),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      Text(allQuestionaires[index].formName ??'',
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16
-                                        ),),
-                                      SizedBox(height: 3,),
-                                      Text("  ${allQuestionaires[index].customerName}",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border:
+                                            Border.all(color: AppTheme.borderColor),
+                                            color:  AppTheme.orangeColor
+                                        ),
+                                        child: Icon(
+                                          SharedIcons.invoiceIcon,
+                                          color: AppTheme.whiteColor,
+                                          size: 25,),
 
-                                          )),
+                                      ),
+                                      SizedBox(width: 8,),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width:270,
+                                            color: Colors.transparent,
+                                            child: Text("${index+1} - ${forms[index].formName ??''}",
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16
+                                              ),),
+                                          ),
+                                          SizedBox(height: 3,),
+                                          Text("  ${forms [index].customerName?.name}",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 12,
+
+                                              )),
+                                        ],
+                                      )
+
                                     ],
-                                  )
-
+                                  ),
                                 ],
                               ),
-                            ],
+                            ) ,
                           ),
-                        ) ,
-                      ),
-                    ),
-                  );
-                }),
-          ],
+                        ),
+                      );
+                    }),
+              ],
+            );
+          },
         ),
+
       )
       // StreamBuilder<QuestionairesUseCaseModel>(
       //     stream: _viewModel.outputQuestionairesContent,
