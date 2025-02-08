@@ -6,6 +6,7 @@ import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import '../../../domain/model/make_form_template/form_item_model.dart';
 
+import 'package:shared_module/localization/shared.localization.dart';
 
 
 
@@ -98,7 +99,7 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
     // },
           //,
           child: Container(
-            height: 150,
+            height: 50,
             width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(width: 0.7),
@@ -111,7 +112,7 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.add_photo_alternate_outlined,
-                      size: 50, color: Colors.grey),
+                      size: 24 , color: Colors.grey),
                   Text(
                     "${SharedLocalization.getLocalization!().tap_upload_image}",
                     style: TextStyle(color: Colors.grey),
@@ -122,7 +123,7 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
                 : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.attach_file, size: 50, color: Colors.grey),
+                Icon(Icons.attach_file, size: 24, color: Colors.grey),
                 Text(
                   "${_attachments.length} attachments selected",
                   style: TextStyle(color: Colors.grey),
@@ -132,10 +133,10 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
           ),
         ),
         if (formItem.isRequired && _attachments.isEmpty)
-          const Padding(
+           Padding(
             padding: EdgeInsets.only(top: 8.0),
             child: Text(
-              'This field is required',
+              SharedLocalization.getLocalization!().filedRequired,
               style: TextStyle(color: Colors.red, fontSize: 12),
             ),
           ),

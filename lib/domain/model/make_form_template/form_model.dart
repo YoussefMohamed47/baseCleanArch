@@ -6,9 +6,13 @@ import 'package:questionnaire/domain/model/make_form_template/question_item_mode
 import '../client_model.dart';
 
 class FormModel {
-  int id;
+  String id;
   String? formName;
+
+  bool? validLocation;
+  bool? showSurveyId;
   ClientItemModel? customerName;
+  DateTime? questionnaireTime;
   List<QuestionItemModel> questions = [];
 
   FormModel(
@@ -17,5 +21,8 @@ class FormModel {
         this.customerName,
         this.formName,
         required this.questions ,
+         this.validLocation ,
+         this.showSurveyId ,
+         this.questionnaireTime ,
        });
 }

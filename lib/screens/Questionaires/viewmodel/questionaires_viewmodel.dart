@@ -6,6 +6,7 @@ import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
 import 'package:questionnaire/domain/usecase/make_form_template_usecase.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
@@ -20,13 +21,13 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
   QuestionairesUseCaseModel();
 
 
-  int? selectedQuestionType ;
+  String? selectedQuestionType ;
 
   bool isRequired=false;
   FormModel dynamicFormModel = FormModel
 
     (
-    id:    Random().nextInt(100),
+    id:    const Uuid().v1(),
       formName: "form 1",questions: []);
   final MakeFormTemplateUseCase _questionairesUseCase;
 

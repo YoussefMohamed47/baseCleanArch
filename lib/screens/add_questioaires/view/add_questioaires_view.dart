@@ -18,6 +18,7 @@ import 'package:shared_module/Widget/primary_container.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../app/app_enums.dart';
 import '../../../domain/model/client_model.dart';
@@ -44,13 +45,81 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
 
   final formkey = GlobalKey<FormState>();
   TextEditingController customerNameController = TextEditingController();
-  FormModel temp =FormModel(id: Random().nextInt(100),questions: [],formName: "",customerName: null);
+  FormModel questionairesTemp =FormModel(id: const Uuid().v1(),questions: [],formName: "",customerName: null);
 
   @override
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _viewModel.start();
+
+
+      print("allForms.lengthallForms.length ${allForms.length}");
+if(allForms.length==1){
+
+  FormModel selectedForm = allForms.first;
+  questionairesTemp =selectedForm;
+
+    allQuestionaires.add(FormModel(
+        id: const Uuid().v1(),
+        questions: questionairesTemp.questions,
+        formName: questionairesTemp.formName,
+        customerName: questionairesTemp.customerName,
+        showSurveyId: questionairesTemp.showSurveyId,
+        validLocation: questionairesTemp.validLocation,
+        questionnaireTime: DateTime.now()
+
+    ));
+    print("gjhkjlhj ${allQuestionaires.length}");
+    Navigator.pop(context);
+
+    List<FormItem> temp2 = [];
+    for(int i =0 ; i < questionairesTemp.questions.length ; i ++){
+
+
+      List<OptionQuestionnaireModel> options = [];
+      for(int o =0 ; o < questionairesTemp.questions[i].options.length ; o ++){
+        for(int j =0 ; j < questionairesTemp.questions[i].options[o].optionController.text.split(",").length ; j ++){
+          options.add(
+
+
+              OptionQuestionnaireModel(
+                  option: questionairesTemp.questions[i].options[o].optionController.text.split(",")[j],
+                  isHide: questionairesTemp.questions[i].options[o].isHide
+              )
+              );
+        }
+      }
+      temp2.add(FormItem(question:questionairesTemp.questions[i].question ?? '',
+          questionType: questionairesTemp.questions[i].questionType ?? FormItemType.ShortText,
+          isRequired:  questionairesTemp.questions[i].isRequired,
+          options:options,
+        isHide:  questionairesTemp.questions[i].isHide
+      ));
+    }
+    // Navigator.push(
+    //     context,
+    //     BasePageRoute(
+    //         builder: (context) => DynamicForm(
+    //           formName: data.allQuestionaires[index].formName ?? '',
+    //           formItems:  temp,
+    //
+    //         )));
+    Navigator.push(
+        context,
+        BasePageRoute(
+            builder: (context) => QuestionairesInfoView(
+              formName: questionairesTemp.formName ?? '',
+              formItems:  temp2,
+              customerName:questionairesTemp.customerName,
+              validLocation: questionairesTemp.validLocation ?? false,
+              surveyId: questionairesTemp.id,
+              showSurveyId: questionairesTemp.showSurveyId ?? false,
+              questionnaireTime: questionairesTemp.questionnaireTime ?? DateTime.now() ,
+
+            )));
+}
+
     });
   }
 
@@ -196,7 +265,7 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                                       border: Border.all(color: Colors.grey.withOpacity(0.6))
                                   ),
                                   padding: EdgeInsets.only(left: 8 ,right: 8 , top: 22),
-                                  child: DropdownButtonFormField<int?>(
+                                  child: DropdownButtonFormField<String?>(
                                       decoration:  InputDecoration(
                                         filled: true,
                                         fillColor: Colors.grey.withOpacity(0.2),
@@ -220,10 +289,74 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                                         if (_viewModel.selectedQuestionType != value) {
                                           _viewModel.selectedQuestionType = value;
                                           FormModel selectedForm = allForms.where((element) => element.id==value).first;
-                                          temp.id =Random().nextInt(100);
-                                          temp.formName=selectedForm.formName;
-                                          temp.customerName=selectedForm.customerName;
-                                          temp.questions=selectedForm.questions;
+                                          questionairesTemp =selectedForm;
+
+
+
+                                          if(formkey.currentState?.validate() ?? false){
+                                            allQuestionaires.add(FormModel(
+                                                id: const Uuid().v1(),
+                                                questions: questionairesTemp.questions,
+                                                formName: questionairesTemp.formName,
+                                                customerName: questionairesTemp.customerName,
+                                                showSurveyId: questionairesTemp.showSurveyId,
+                                                validLocation: questionairesTemp.validLocation,
+                                                questionnaireTime: DateTime.now()
+
+                                            ));
+                                            print("gjhkjlhj ${allQuestionaires.length}");
+                                            Navigator.pop(context);
+
+                                            List<FormItem> temp2 = [];
+                                            for(int i =0 ; i < questionairesTemp.questions.length ; i ++){
+                                              List<OptionQuestionnaireModel> options = [];
+                                              for(int o =0 ; o < questionairesTemp.questions[i].options.length ; o ++){
+                                                for(int j =0 ; j < questionairesTemp.questions[i].options[o].optionController.text.split(",").length ; j ++){
+                                                  options.add(
+
+                                                      OptionQuestionnaireModel(
+                                                        option:  questionairesTemp.questions[i].options[o].optionController.text.split(",")[j],
+                                                        isHide:  questionairesTemp.questions[i].options[o].isHide
+                                                      )
+                                                     );
+                                                }
+                                              }
+                                              temp2.add(FormItem(question:questionairesTemp.questions[i].question ?? '',
+                                                  questionType: questionairesTemp.questions[i].questionType ?? FormItemType.ShortText,
+                                                  isRequired:  questionairesTemp.questions[i].isRequired,
+                                                  options:options,
+                                                isHide:  questionairesTemp.questions[i].isHide
+                                              ));
+                                            }
+                                            // Navigator.push(
+                                            //     context,
+                                            //     BasePageRoute(
+                                            //         builder: (context) => DynamicForm(
+                                            //           formName: data.allQuestionaires[index].formName ?? '',
+                                            //           formItems:  temp,
+                                            //
+                                            //         )));
+                                            Navigator.push(
+                                                context,
+                                                BasePageRoute(
+                                                    builder: (context) => QuestionairesInfoView(
+                                                      formName: questionairesTemp.formName ?? '',
+                                                      formItems:  temp2,
+                                                      customerName:questionairesTemp.customerName,
+                                                      validLocation: questionairesTemp.validLocation ?? false,
+                                                      surveyId: questionairesTemp.id,
+                                                      showSurveyId: questionairesTemp.showSurveyId ?? false,
+                                                      questionnaireTime: questionairesTemp.questionnaireTime ?? DateTime.now() ,
+
+                                                    )));
+
+
+
+
+
+
+
+                                          }
                                         }
                                       },
                                       validator: (value) {
@@ -255,39 +388,91 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
 
 
 
-                  Container(
-                    color: AppTheme.whiteColor,
-                    child: GestureDetector(
-                      onTap: (){
-                        // addQuestionModel( _viewModel.selectedQuestionType );
-                        if(formkey.currentState?.validate() ?? false){
-                          allQuestionaires.add(temp);
-                          print("gjhkjlhj ${allQuestionaires.length}");
-                          Navigator.pop(context);
-                        }
-
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal:12.0,vertical: 14),
-                        child: Container(
-                          width: double.infinity,
-                          height: 48,
-                          decoration: BoxDecoration(
-                              color: AppTheme.secondaryColor,
-                              borderRadius: BorderRadius.circular(8)
-                          ),
-                          child: Center(
-                            child: Text(SharedLocalization.getLocalization!().next,
-                              style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.whiteColor
-                              ),),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
+                  // Container(
+                  //   color: AppTheme.whiteColor,
+                  //   child: GestureDetector(
+                  //     onTap: (){
+                  //       // addQuestionModel( _viewModel.selectedQuestionType );
+                  //       if(formkey.currentState?.validate() ?? false){
+                  //         allQuestionaires.add(FormModel(
+                  //             id: const Uuid().v1(),
+                  //             questions: questionairesTemp.questions,
+                  //             formName: questionairesTemp.formName,
+                  //             customerName: questionairesTemp.customerName,
+                  //             showSurveyId: questionairesTemp.showSurveyId,
+                  //             validLocation: questionairesTemp.validLocation,
+                  //           questionnaireTime: DateTime.now()
+                  //
+                  //         ));
+                  //         print("gjhkjlhj ${allQuestionaires.length}");
+                  //         Navigator.pop(context);
+                  //
+                  //            List<FormItem> temp2 = [];
+                  //           for(int i =0 ; i < questionairesTemp.questions.length ; i ++){
+                  //             List<String> options = [];
+                  //             for(int o =0 ; o < questionairesTemp.questions[i].options.length ; o ++){
+                  //               for(int j =0 ; j < questionairesTemp.questions[i].options[o].optionController.text.split(",").length ; j ++){
+                  //                 options.add(questionairesTemp.questions[i].options[o].optionController.text.split(",")[j]);
+                  //               }
+                  //             }
+                  //             temp2.add(FormItem(question:questionairesTemp.questions[i].question ?? '',
+                  //                 questionType: questionairesTemp.questions[i].questionType ?? FormItemType.ShortText,
+                  //                 isRequired:  questionairesTemp.questions[i].isRequired,
+                  //                 options:options
+                  //             ));
+                  //           }
+                  //           // Navigator.push(
+                  //           //     context,
+                  //           //     BasePageRoute(
+                  //           //         builder: (context) => DynamicForm(
+                  //           //           formName: data.allQuestionaires[index].formName ?? '',
+                  //           //           formItems:  temp,
+                  //           //
+                  //           //         )));
+                  //           Navigator.push(
+                  //               context,
+                  //               BasePageRoute(
+                  //                   builder: (context) => QuestionairesInfoView(
+                  //                     formName: questionairesTemp.formName ?? '',
+                  //                     formItems:  temp2,
+                  //                     customerName:questionairesTemp.customerName,
+                  //                     validLocation: questionairesTemp.validLocation ?? false,
+                  //                     surveyId: questionairesTemp.id,
+                  //                     showSurveyId: questionairesTemp.showSurveyId ?? false,
+                  //                     questionnaireTime: questionairesTemp.questionnaireTime ?? DateTime.now() ,
+                  //
+                  //                   )));
+                  //
+                  //
+                  //
+                  //
+                  //
+                  //
+                  //
+                  //       }
+                  //
+                  //     },
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.symmetric(horizontal:12.0,vertical: 14),
+                  //       child: Container(
+                  //         width: double.infinity,
+                  //         height: 48,
+                  //         decoration: BoxDecoration(
+                  //             color: AppTheme.secondaryColor,
+                  //             borderRadius: BorderRadius.circular(8)
+                  //         ),
+                  //         child: Center(
+                  //           child: Text(SharedLocalization.getLocalization!().next,
+                  //             style: TextStyle(
+                  //                 fontSize: 24,
+                  //                 fontWeight: FontWeight.bold,
+                  //                 color: AppColors.whiteColor
+                  //             ),),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // )
 
                 ],
               ),

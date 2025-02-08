@@ -8,11 +8,15 @@ class QuestionItemModel {
 
   List<ItemModel> options;
   bool isRequired;
+  bool isHide;
   List<DynamicFormValidator> validators;
   QuestionItemModel(
       {
         this.question, this.questionType,
         this.options = const [],
         this.isRequired = false,
-        this.validators = const []});
+        this.validators = const [],
+        this.isHide = false,
+
+      });
 }

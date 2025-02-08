@@ -18,6 +18,7 @@ import 'package:shared_module/Widget/primary_container.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../app/app_enums.dart';
 import '../../../domain/model/client_model.dart';
@@ -43,7 +44,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
   addQuestionaires(QuestionairesUseCaseModel? data){
     final formkey = GlobalKey<FormState>();
     TextEditingController customerNameController = TextEditingController();
-    FormModel temp =FormModel(id: Random().nextInt(100),questions: [],formName: "",customerName: null);
+    FormModel temp =FormModel(id:const Uuid().v1(),questions: [],formName: "",customerName: null);
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -184,7 +185,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                         border: Border.all(color: Colors.grey.withOpacity(0.6))
                                     ),
                                     padding: EdgeInsets.only(left: 8 ,right: 8 , top: 22),
-                                    child: DropdownButtonFormField<int?>(
+                                    child: DropdownButtonFormField<String?>(
                                         decoration:  InputDecoration(
                                           filled: true,
                                           fillColor: Colors.grey.withOpacity(0.2),
@@ -208,7 +209,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                           if (_viewModel.selectedQuestionType != value) {
                                             _viewModel.selectedQuestionType = value;
                                             FormModel selectedForm = allForms.where((element) => element.id==value).first;
-                                            temp.id =Random().nextInt(100);
+                                            temp.id =const Uuid().v1();
                                             temp.formName=selectedForm.formName;
                                             temp.questions=selectedForm.questions;
                                           }
@@ -311,7 +312,6 @@ class _QuestionairesViewState extends State<QuestionairesView> {
   Widget build(BuildContext context) {
     return  AppScaffold(
       currentPageName: CurrentPageNameEnum.invoiceScreen,
-
       searchHintText: SharedLocalization
           .getLocalization!().surveySearchQuestionnaires,
       pageTitle: SharedLocalization
@@ -356,16 +356,23 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                           if(widget.isQuestionnaires){
                             List<FormItem> temp = [];
                             for(int i =0 ; i < forms[index].questions.length ; i ++){
-                              List<String> options = [];
+                              List<OptionQuestionnaireModel> options = [];
                               for(int o =0 ; o < forms[index].questions[i].options.length ; o ++){
                                 for(int j =0 ; j < forms[index].questions[i].options[o].optionController.text.split(",").length ; j ++){
-                                  options.add(forms[index].questions[i].options[o].optionController.text.split(",")[j]);
+                                  options.add(
+
+                                      OptionQuestionnaireModel(
+                                        option: forms[index].questions[i].options[o].optionController.text.split(",")[j],
+                                        isHide: forms[index].questions[i].options[o].isHide
+                                      )
+                                      );
                                 }
                               }
                               temp.add(FormItem(question:forms[index].questions[i].question ?? '',
                                   questionType: forms[index].questions[i].questionType ?? FormItemType.ShortText,
                                   isRequired:  forms[index].questions[i].isRequired,
-                                  options:options
+                                  options:options,
+                                isHide:  forms[index].questions[i].isHide
                               ));
                             }
                             // Navigator.push(
@@ -383,6 +390,11 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                       formName: forms[index].formName ?? '',
                                       formItems:  temp,
                                       customerName:forms[index].customerName,
+                                      validLocation: forms[index].validLocation ?? false,
+                                      surveyId: forms[index].id,
+                                      showSurveyId: forms[index].showSurveyId ?? false,
+                                      questionnaireTime: forms[index].questionnaireTime ?? DateTime.now() ,
+
                                     )));
                           }else{
 
@@ -426,7 +438,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                           Container(
                                             width:270,
                                             color: Colors.transparent,
-                                            child: Text("${index+1} - ${forms[index].formName ??''}",
+                                            child: Text(forms[index].formName ??'',
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(
@@ -434,15 +446,19 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                                   fontSize: 16
                                               ),),
                                           ),
-                                          SizedBox(height: 3,),
-                                          Text("  ${forms [index].customerName?.name}",
-                                              style: TextStyle(
+                                          const SizedBox(height: 3,),
+                                          Text("  ${
+                                              (forms [index].showSurveyId ?? false)?
+                                              forms [index].id : 'mmmmm'}",
+                                              style: const TextStyle(
                                                 fontWeight: FontWeight.w500,
                                                 fontSize: 12,
 
                                               )),
+
                                         ],
-                                      )
+                                      ),
+
 
                                     ],
                                   ),
@@ -458,140 +474,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
           },
         ),
 
-      )
-      // StreamBuilder<QuestionairesUseCaseModel>(
-      //     stream: _viewModel.outputQuestionairesContent,
-      //     builder: (context, snapshot) {
-      //       QuestionairesUseCaseModel? data = snapshot.data;
-      //       return
-      //         data != null ?
-      //         SingleChildScrollView(
-      //           child: Column(
-      //             children: [
-      //               //
-      //               allQuestionaires.isEmpty ?
-      //               SizedBox(
-      //                 height: MediaQuery.of(context).size.height -200,
-      //                 child: const Column(
-      //                   crossAxisAlignment: CrossAxisAlignment.center,
-      //                   mainAxisAlignment: MainAxisAlignment.center,
-      //                   children: [
-      //                     NoItemsFoundIndicatorWidget()
-      //                   ],
-      //                 ),
-      //               ) :
-      //               ListView.builder(
-      //                   itemCount: allQuestionaires.length,
-      //                   shrinkWrap: true,
-      //                   physics: NeverScrollableScrollPhysics(),
-      //                   itemBuilder: (context ,index){
-      //                     return GestureDetector(
-      //                       onTap: (){
-      //
-      //
-      //                         if(widget.isQuestionnaires){
-      //                           List<FormItem> temp = [];
-      //                           for(int i =0 ; i < allQuestionaires[index].questions.length ; i ++){
-      //                             List<String> options = [];
-      //                             for(int o =0 ; o < allQuestionaires[index].questions[i].options.length ; o ++){
-      //                               for(int j =0 ; j < allQuestionaires[index].questions[i].options[o].optionController.text.split(",").length ; j ++){
-      //                                 options.add(allQuestionaires[index].questions[i].options[o].optionController.text.split(",")[j]);
-      //                               }
-      //                             }
-      //                             temp.add(FormItem(question:allQuestionaires[index].questions[i].question ?? '',
-      //                                 questionType: allQuestionaires[index].questions[i].questionType ?? FormItemType.ShortText,
-      //                                 isRequired:  allQuestionaires[index].questions[i].isRequired,
-      //                                 options:options
-      //                             ));
-      //                           }
-      //                           // Navigator.push(
-      //                           //     context,
-      //                           //     BasePageRoute(
-      //                           //         builder: (context) => DynamicForm(
-      //                           //           formName: data.allQuestionaires[index].formName ?? '',
-      //                           //           formItems:  temp,
-      //                           //
-      //                           //         )));
-      //
-      //                           Navigator.push(
-      //                               context,
-      //                               BasePageRoute(
-      //                                   builder: (context) => QuestionairesInfoView(
-      //                                     formName: allQuestionaires[index].formName ?? '',
-      //                                     formItems:  temp,
-      //                                     customerName: allQuestionaires[index].customerName ??'',
-      //
-      //                                   )));
-      //                         }else{
-      //
-      //                         }
-      //                       },
-      //                       child: PrimaryContainer(
-      //
-      //                         child: Container(
-      //                           //height: 120,
-      //                           width: double.infinity,
-      //                           // color: Colors.white,
-      //                           child:Padding(
-      //                             padding:  EdgeInsets.symmetric(vertical: 10.0),
-      //                             child: Row(
-      //                               crossAxisAlignment: CrossAxisAlignment.center,
-      //                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //                               children: [
-      //                                 Row(
-      //                                   crossAxisAlignment: CrossAxisAlignment.center,
-      //                                   mainAxisAlignment: MainAxisAlignment.start,
-      //                                   children: [
-      //                                     Container(
-      //                                       padding: const EdgeInsets.all(12),
-      //                                       decoration: BoxDecoration(
-      //                                           shape: BoxShape.circle,
-      //                                           border:
-      //                                           Border.all(color: AppTheme.borderColor),
-      //                                           color:  AppTheme.orangeColor
-      //                                       ),
-      //                                       child: Icon(
-      //                                         SharedIcons.invoiceIcon,
-      //                                         color: AppTheme.whiteColor,
-      //                                         size: 25,),
-      //
-      //                                     ),
-      //                                     SizedBox(width: 8,),
-      //                                     Column(
-      //                                       crossAxisAlignment: CrossAxisAlignment.start,
-      //                                       mainAxisAlignment: MainAxisAlignment.start,
-      //                                       children: [
-      //                                         Text(allQuestionaires[index].formName ??'',
-      //                                           maxLines: 2,
-      //                                           overflow: TextOverflow.ellipsis,
-      //                                           style: const TextStyle(
-      //                                               fontWeight: FontWeight.bold,
-      //                                               fontSize: 16
-      //                                           ),),
-      //                                         SizedBox(height: 3,),
-      //                                         Text("  ${allQuestionaires[index].customerName}",
-      //                                             style: TextStyle(
-      //                                               fontWeight: FontWeight.w500,
-      //                                               fontSize: 12,
-      //
-      //                                             )),
-      //                                       ],
-      //                                     )
-      //
-      //                                   ],
-      //                                 ),
-      //                               ],
-      //                             ),
-      //                           ) ,
-      //                         ),
-      //                       ),
-      //                     );
-      //                   }),
-      //             ],
-      //           ),
-      //         ):const SizedBox();
-      //     })
-     ,
+      ),
       floatingActionButton:
       FloatingActionButton(
           elevation: 0.0,

@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:questionnaire/app/app_enums.dart';
+import 'package:questionnaire/app/app_shared.dart';
 import 'package:questionnaire/app/di.dart';
 import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
@@ -12,10 +14,12 @@ import 'package:questionnaire/presentation/resources/color_manager.dart';
 import 'package:questionnaire/screens/forms/viewmodel/forms_viewmodel.dart';
 import 'package:questionnaire/screens/make_form_template/viewmodel/make_form_template_viewmodel.dart';
 import 'package:questionnaire/utils/colors/appColors.dart';
+import 'package:shared_module/Widget/toaster.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:shared_module/service/custom.validators.dart';
 import 'package:shared_module/theme/app-input-decoration.theme.dart';
 import 'package:shared_module/theme/app.theme.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../domain/model/client_model.dart' ;
 
@@ -25,7 +29,8 @@ class BuildFormsScreens extends StatefulWidget {
   FormModel form;
   bool isEdit;
   int? formIndex;
-   BuildFormsScreens({required this.form,required this.isEdit,this.formIndex});
+  bool? validLocation;
+   BuildFormsScreens({required this.form,required this.isEdit,this.formIndex,this.validLocation});
 
   @override
   State<BuildFormsScreens> createState() => _BuildFormsScreensState();
@@ -55,12 +60,12 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
       builder: (context) {
         return WillPopScope(
           onWillPop: () async{
-            _viewModel.selectedQuestionType = FormItemType.ShortText;
+            _viewModel.selectedQuestionType ;
             _viewModel.postDataToView();
             return true;
           },
           child: FractionallySizedBox(
-            heightFactor: 0.3,
+            heightFactor: 0.2,
             child: StatefulBuilder(
               builder: (BuildContext context, setState) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +80,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                         //  borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.grey.withOpacity(0.6))
                         ),
-                        padding: EdgeInsets.only(left: 8 ,right: 8 , top: 52),
+                        padding: EdgeInsets.only(left: 8 ,right: 8 , top: 22),
                         child: DropdownButtonFormField<FormItemType>(
                             decoration:  InputDecoration(
                               filled: true,
@@ -99,7 +104,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                             onChanged: (value) {
                               if (_viewModel.selectedQuestionType != value) {
                                 _viewModel.selectedQuestionType = value ?? FormItemType.ShortText;
-
+                                addQuestionModel( _viewModel.selectedQuestionType! );
                               }
                             },
                             items: List.generate(
@@ -119,33 +124,33 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
 
 
-                  Container(
-                    color: AppTheme.whiteColor,
-                    child: GestureDetector(
-                      onTap: (){
-                        addQuestionModel( _viewModel.selectedQuestionType );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal:12.0,vertical: 14),
-                        child: Container(
-                          width: double.infinity,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppTheme.secondaryColor,
-                              borderRadius: BorderRadius.circular(8)
-                          ),
-                          child: Center(
-                            child: Text(SharedLocalization.getLocalization!().next,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.whiteColor
-                              ),),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
+                  // Container(
+                  //   color: AppTheme.whiteColor,
+                  //   child: GestureDetector(
+                  //     onTap: (){
+                  //       addQuestionModel( _viewModel.selectedQuestionType );
+                  //     },
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.symmetric(horizontal:12.0,vertical: 14),
+                  //       child: Container(
+                  //         width: double.infinity,
+                  //         height: 48,
+                  //         decoration: BoxDecoration(
+                  //           color: AppTheme.secondaryColor,
+                  //             borderRadius: BorderRadius.circular(8)
+                  //         ),
+                  //         child: Center(
+                  //           child: Text(SharedLocalization.getLocalization!().next,
+                  //             style: TextStyle(
+                  //               fontSize: 24,
+                  //               fontWeight: FontWeight.bold,
+                  //               color: AppColors.whiteColor
+                  //             ),),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // )
 
                 ],
               ),
@@ -154,7 +159,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
         );
       },
     ).then((value) {
-      _viewModel.selectedQuestionType = FormItemType.ShortText;
+      _viewModel.selectedQuestionType=null;
       _viewModel.postDataToView();
     });
   }
@@ -166,7 +171,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
     final formkey = GlobalKey<FormState>();
 
     options.add(ItemModel(
-      TextEditingController()
+      TextEditingController(),
+      isHide: false
     ));
     return showModalBottomSheet(
       context: context,
@@ -386,152 +392,173 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                             selectedQuestionType == FormItemType.MultiChoice ?
                             Container(
                               color: Colors.white,
-                              child: ListView.builder(
+                              child: ReorderableListView.builder(
                                 itemCount: options.length,
                                 shrinkWrap: true,
                                 primary: false,
-                              //  physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (context,index){
+                                onReorderStart: (int x){
+                                  FocusScope.of(context).unfocus();
+
+                                },
+                                onReorder: (oldIndex, newIndex) {
+                                  setState(() {
+                                    if (newIndex > oldIndex) {
+                                      newIndex -= 1;
+                                    }
+                                    final item = options.removeAt(oldIndex);
+                                    options.insert(newIndex, item);
+                                  });
+                                },
+                                itemBuilder: (context, index) {
                                   return Padding(
-                                    padding:  EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
+                                    key: ValueKey(options[index]), // Ensure unique keys
+                                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
                                           child: TextFormField(
-                                              controller: options[index].optionController,
-                                              keyboardType: TextInputType.multiline,
-                                              maxLines: 6,
-                                              minLines: 1,
-                                              autofocus: false,
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize:  16),
-                                              inputFormatters: [
-                                                // LengthLimitingTextInputFormatter(
-                                                //     AppConsts.chatMessageMaxLength),
-                                              ],
-                                              onChanged: (value) {
-
-                                              },
-                                              onTap: () {
-
-                                              },
-                                              decoration: InputDecoration(
-                                                errorStyle: TextStyle(
-                                                  fontSize: 14,
+                                            controller: options[index].optionController,
+                                            keyboardType: TextInputType.multiline,
+                                            maxLines: 6,
+                                            minLines: 1,
+                                            autofocus: false,
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                            ),
+                                            onChanged: (value) {},
+                                            onTap: () {},
+                                            decoration: InputDecoration(
+                                              errorStyle: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                              errorMaxLines: 2,
+                                              hintText:
+                                              "${SharedLocalization.getLocalization!().surveyWriteOption} ${index + 1}",
+                                              hintStyle: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 16,
+                                              ),
+                                              filled: true,
+                                              contentPadding: EdgeInsets.only(top: 4, left: 6, right: 6),
+                                              fillColor: Colors.white.withOpacity(0.2),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(4.0),
+                                                borderSide: BorderSide(
+                                                  color: Colors.grey.withOpacity(0.3),
                                                 ),
-                                                errorMaxLines: 2,
-                                                hintText:
-                                                "${SharedLocalization.getLocalization!().surveyWriteOption} ${index+1}",
-                                                hintStyle: TextStyle(
-                                                    color: Colors.grey,
-                                                    fontSize:
-                                                    16),
-
-                                                filled: true,
-                                                contentPadding: EdgeInsets.only(
-                                                    top: 4, left: 6, right: 6),
-                                                // suffixIcon: Row(
-                                                //   mainAxisAlignment: MainAxisAlignmentaceBetween, // added line
-                                                //   mainAxisSize: MainAxisSize.min, // added line
-                                                //   children: [
-                                                //
-                                                //
-                                                //
-                                                //   ],
-                                                // ),
-
-                                                fillColor:
-                                                Colors.white.withOpacity(0.2),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                                  borderSide:  BorderSide(
-                                                    color: Colors.grey.withOpacity(0.3),
-                                                  ),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(4.0),
+                                                borderSide: BorderSide(
+                                                  color: Colors.grey.withOpacity(0.3),
                                                 ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                                  borderSide:  BorderSide(
-                                                    color: Colors.grey.withOpacity(0.3),
-                                                  ),
+                                              ),
+                                              focusedErrorBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(4.0),
+                                                borderSide: BorderSide(
+                                                  color: ColorManager.error,
                                                 ),
-                                                focusedErrorBorder:
-                                                OutlineInputBorder(
-                                                    borderRadius:
-                                                    BorderRadius.circular(
-                                                        4.0),
-                                                    borderSide: BorderSide(
-                                                      color: ColorManager.error,
-                                                    )),
-                                                errorBorder: OutlineInputBorder(
-                                                    borderRadius:
-                                                    BorderRadius.circular(4.0),
-                                                    borderSide: BorderSide(
-                                                      color: ColorManager.error,
-                                                    )),
-                                              )),
+                                              ),
+                                              errorBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(4.0),
+                                                borderSide: BorderSide(
+                                                  color: ColorManager.error,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ),
-
-                                      Row(
-
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        mainAxisAlignment: MainAxisAlignment.start,
-
-                                        children: [
-                                          GestureDetector(
-                                            child: Padding(
-                                              padding:  EdgeInsets.only(left: 8.0,right: 1),
-                                              child: Container(
-                                                decoration: BoxDecoration(
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            SizedBox(width: 8,),
+                                            GestureDetector(
+                                              child: Padding(
+                                                padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
-                                                    color: AppTheme.accentColor
-                                                ),
-                                                child: Padding(
-                                                  padding:  EdgeInsets.all(3.0),
-                                                  child: Icon(Icons.add,color: ColorManager.white,size: 16,),
+                                                    color: AppTheme.accentColor,
+                                                  ),
+                                                  child: Padding(
+                                                    padding: EdgeInsets.all(3.0),
+                                                    child: Icon(Icons.add, color: ColorManager.white, size: 16),
+                                                  ),
                                                 ),
                                               ),
+                                              onTap: () {
+                                                options.add(ItemModel(TextEditingController(), isHide: false));
+                                                setState(() {});
+                                              },
                                             ),
-                                            onTap: (){  options.add(ItemModel(
-                                                TextEditingController()
-                                            ));
-                                            setState((){});
-                                            },
-                                          ),
-                                          GestureDetector(
-                                            child: Padding(
-                                              padding:  EdgeInsets.only(left: 8.0,right: 1),
-                                              child: Container(
-                                                decoration: BoxDecoration(
+
+                                            GestureDetector(
+                                              child: Padding(
+                                                padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
-                                                    color: AppTheme.errorColor
-                                                ),
-                                                child: Padding(
-                                                  padding:  EdgeInsets.all(3.0),
-                                                  child: Icon(Icons.close,color: ColorManager.white,size: 16,),
+                                                  //  color: AppTheme.errorColor,
+                                                  ),
+                                                  child: Padding(
+                                                    padding: EdgeInsets.all(3.0),
+                                                    child: Icon(Icons.hide_source_sharp,
+                                                        color:
+                                                        options[index].isHide ?
+                                                        ColorManager.primary:
+                                                        ColorManager.grey, size: 16),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            onTap: (){
-                                              if(options.length>1){
-                                                options.removeAt(index);
-                                                setState((){});
-                                              }
+                                              onTap: () {
+                                                  options[index].isHide = !options[index].isHide;
+                                                  setState(() {});
 
-                                            },
-                                          ),
-                                        ],
-                                      )
+                                              },
+                                            ),
+
+                                            GestureDetector(
+                                              child: Padding(
+                                                padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: AppTheme.errorColor,
+                                                  ),
+                                                  child: Padding(
+                                                    padding: EdgeInsets.all(3.0),
+                                                    child: Icon(Icons.close, color: ColorManager.white, size: 16),
+                                                  ),
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                if (options.length > 1) {
+                                                  options.removeAt(index);
+                                                  setState(() {});
+                                                }
+                                              },
+                                            ),
+
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.transparent,
+                                              ),
+                                              child: Icon(Icons.reorder, color: ColorManager.grey2, size: 32),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   );
                                 },
                               ),
-                            ) :SizedBox()
+                            )
+                                :SizedBox()
 
 
 
@@ -599,11 +626,9 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
     List<ItemModel> options=[];
     options=question.options;
     _viewModel.isRequired = question.isRequired;
+
     final formkey = GlobalKey<FormState>();
 
-    options.add(ItemModel(
-        TextEditingController()
-    ));
     return showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.whiteColor,
@@ -617,380 +642,430 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
       isScrollControlled: true,
       builder: (context) {
         print("selectedQuestionType ======= $selectedQuestionType");
-        return FractionallySizedBox(
-          heightFactor: 0.8,
-          child: StatefulBuilder(
-            builder: (BuildContext context, setState) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom),
-                    child: Container(
-                      color: Colors.white,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            SizedBox(height: 22,),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('${SharedLocalization.getLocalization!().surveyQuestionType}',style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 18,
-
-                                    ),),
-
-                                    Text('   ${selectedQuestionType.name}',style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 14,
-                                    ),),
+        return
 
 
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 12,),
-                            Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  //  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.withOpacity(0.6))
-                              ),
-                              padding: EdgeInsets.only(left: 8 ,right: 8 , top: 0),
-                              child: Form(
-                                key: formkey,
-                                child: TextFormField(
-                                    controller: questionController,
-                                    keyboardType: TextInputType.multiline,
-                                    maxLines: 6,
-                                    minLines: 1,
-                                    autofocus: false,
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize:  16),
-                                    inputFormatters: [
-                                      // LengthLimitingTextInputFormatter(
-                                      //     AppConsts.chatMessageMaxLength),
-                                    ],
-                                    onChanged: (value) {
-
-                                    },
-                                    onTap: () {
-
-                                    },
-                                    validator: (val){
-                                      if(val?.isEmpty ?? false){
-                                        return SharedLocalization.getLocalization!().surveyFiledRequired;
-                                      }
-                                      return null;
-                                    },
-                                    decoration: InputDecoration(
-                                      errorStyle: TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                      errorMaxLines: 2,
-                                      hintText:
-                                      SharedLocalization.getLocalization!().surveyWriteQuestion,
-                                      hintStyle: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize:
-                                          16),
-
-                                      filled: true,
-                                      contentPadding: EdgeInsets.only(
-                                          top: 4, left: 6, right: 6),
-                                      // suffixIcon: Row(
-                                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween, // added line
-                                      //   mainAxisSize: MainAxisSize.min, // added line
-                                      //   children: [
-                                      //
-                                      //
-                                      //
-                                      //   ],
-                                      // ),
-
-                                      fillColor:
-                                      Colors.white.withOpacity(0.2),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(4.0),
-                                        borderSide:  BorderSide(
-                                          color: Colors.grey.withOpacity(0.3),
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(4.0),
-                                        borderSide:  BorderSide(
-                                          color: Colors.grey.withOpacity(0.3),
-                                        ),
-                                      ),
-                                      focusedErrorBorder:
-                                      OutlineInputBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(
-                                              4.0),
-                                          borderSide: BorderSide(
-                                            color: ColorManager.error,
-                                          )),
-                                      errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(4.0),
-                                          borderSide: BorderSide(
-                                            color: ColorManager.error,
-                                          )),
-                                    )),
-                              ),
-                            ),
-                            SizedBox(height: 12,),
-                            Container(
-                                color: Colors.white,
-                                child: ElevatedButton(
-
-
-                                    onPressed: () => setState(() => _viewModel.isRequired = !_viewModel.isRequired),
-
-
-                                    style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                      elevation: MaterialStateProperty.all<double>(0),
-                                    ),
-                                    child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          SizedBox(
-                                              height: 24.0,
-                                              width: 24.0,
-                                              child: Checkbox(
-                                                  value: _viewModel.isRequired,
-                                                  activeColor: AppTheme.accentColor,
-                                                  onChanged: (value){
-                                                    setState(() => _viewModel.isRequired = value ?? false);
-                                                  }
-                                              )
-                                          ),
-                                          // You can play with the width to adjust your
-                                          // desired spacing
-                                          SizedBox(width: 10.0),
-                                          Text(SharedLocalization.getLocalization!().surveyIsRequired,
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 16,
-
-                                            ),
-                                          )
-                                        ]
-                                    )
-                                )
-                            ),
-
-                            selectedQuestionType == FormItemType.SingleChoice ||
-                                selectedQuestionType == FormItemType.MultiChoice ?
-                            Container(
-                              color: Colors.white,
-                              child: ListView.builder(
-                                itemCount: options.length,
-                                shrinkWrap: true,
-                                primary: false,
-                                //  physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (context,index){
-                                  return Padding(
-                                    padding:  EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
+          FractionallySizedBox(
+            heightFactor: 0.8,
+            child: Scaffold(
+              resizeToAvoidBottomInset: true,
+              body: StatefulBuilder(
+                builder: (BuildContext context, setState) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom),
+                        child: Container(
+                          color: Colors.white,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                SizedBox(height: 22,),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: SizedBox(
+                                    width: double.infinity,
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Expanded(
-                                          child: TextFormField(
-                                              controller: options[index].optionController,
-                                              keyboardType: TextInputType.multiline,
-                                              maxLines: 6,
-                                              minLines: 1,
-                                              autofocus: false,
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize:  16),
-                                              inputFormatters: [
-                                                // LengthLimitingTextInputFormatter(
-                                                //     AppConsts.chatMessageMaxLength),
-                                              ],
-                                              onChanged: (value) {
+                                        Text('${SharedLocalization.getLocalization!().surveyQuestionType}',style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 18,
 
-                                              },
-                                              onTap: () {
+                                        ),),
 
-                                              },
-                                              decoration: InputDecoration(
-                                                errorStyle: TextStyle(
-                                                  fontSize: 14,
-                                                ),
-                                                errorMaxLines: 2,
-                                                hintText:
-                                                "${SharedLocalization.getLocalization!().surveyWriteOption} ${index+1}",
-                                                hintStyle: TextStyle(
-                                                    color: Colors.grey,
-                                                    fontSize:
-                                                    16),
+                                        Text('   ${selectedQuestionType.name}',style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                        ),),
 
-                                                filled: true,
-                                                contentPadding: EdgeInsets.only(
-                                                    top: 4, left: 6, right: 6),
-                                                // suffixIcon: Row(
-                                                //   mainAxisAlignment: MainAxisAlignmentaceBetween, // added line
-                                                //   mainAxisSize: MainAxisSize.min, // added line
-                                                //   children: [
-                                                //
-                                                //
-                                                //
-                                                //   ],
-                                                // ),
 
-                                                fillColor:
-                                                Colors.white.withOpacity(0.2),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                                  borderSide:  BorderSide(
-                                                    color: Colors.grey.withOpacity(0.3),
-                                                  ),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                                  borderSide:  BorderSide(
-                                                    color: Colors.grey.withOpacity(0.3),
-                                                  ),
-                                                ),
-                                                focusedErrorBorder:
-                                                OutlineInputBorder(
-                                                    borderRadius:
-                                                    BorderRadius.circular(
-                                                        4.0),
-                                                    borderSide: BorderSide(
-                                                      color: ColorManager.error,
-                                                    )),
-                                                errorBorder: OutlineInputBorder(
-                                                    borderRadius:
-                                                    BorderRadius.circular(4.0),
-                                                    borderSide: BorderSide(
-                                                      color: ColorManager.error,
-                                                    )),
-                                              )),
-                                        ),
-
-                                        Row(
-
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          mainAxisAlignment: MainAxisAlignment.start,
-
-                                          children: [
-                                            GestureDetector(
-                                              child: Padding(
-                                                padding:  EdgeInsets.only(left: 8.0,right: 1),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      color: AppTheme.accentColor
-                                                  ),
-                                                  child: Padding(
-                                                    padding:  EdgeInsets.all(3.0),
-                                                    child: Icon(Icons.add,color: ColorManager.white,size: 16,),
-                                                  ),
-                                                ),
-                                              ),
-                                              onTap: (){  options.add(ItemModel(
-                                                  TextEditingController()
-                                              ));
-                                              setState((){});
-                                              },
-                                            ),
-                                            GestureDetector(
-                                              child: Padding(
-                                                padding:  EdgeInsets.only(left: 8.0,right: 1),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      color: AppTheme.errorColor
-                                                  ),
-                                                  child: Padding(
-                                                    padding:  EdgeInsets.all(3.0),
-                                                    child: Icon(Icons.close,color: ColorManager.white,size: 16,),
-                                                  ),
-                                                ),
-                                              ),
-                                              onTap: (){
-                                                if(options.length>1){
-                                                  options.removeAt(index);
-                                                  setState((){});
-                                                }
-
-                                              },
-                                            ),
-                                          ],
-                                        )
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
-                            ) :SizedBox()
+                                  ),
+                                ),
+                                SizedBox(height: 12,),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      //  borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.grey.withOpacity(0.6))
+                                  ),
+                                  padding: EdgeInsets.only(left: 8 ,right: 8 , top: 0),
+                                  child: Form(
+                                    key: formkey,
+                                    child: TextFormField(
+                                        controller: questionController,
+                                        keyboardType: TextInputType.multiline,
+                                        maxLines: 6,
+                                        minLines: 1,
+                                        autofocus: false,
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize:  16),
+                                        inputFormatters: [
+                                          // LengthLimitingTextInputFormatter(
+                                          //     AppConsts.chatMessageMaxLength),
+                                        ],
+                                        onChanged: (value) {
+
+                                        },
+                                        onTap: () {
+
+                                        },
+                                        validator: (val){
+                                          if(val?.isEmpty ?? false){
+                                            return SharedLocalization.getLocalization!().surveyFiledRequired;
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                          errorStyle: TextStyle(
+                                            fontSize: 14,
+                                          ),
+                                          errorMaxLines: 2,
+                                          hintText:
+                                          SharedLocalization.getLocalization!().surveyWriteQuestion,
+                                          hintStyle: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize:
+                                              16),
+
+                                          filled: true,
+                                          contentPadding: EdgeInsets.only(
+                                              top: 4, left: 6, right: 6),
+                                          // suffixIcon: Row(
+                                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween, // added line
+                                          //   mainAxisSize: MainAxisSize.min, // added line
+                                          //   children: [
+                                          //
+                                          //
+                                          //
+                                          //   ],
+                                          // ),
+
+                                          fillColor:
+                                          Colors.white.withOpacity(0.2),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(4.0),
+                                            borderSide:  BorderSide(
+                                              color: Colors.grey.withOpacity(0.3),
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(4.0),
+                                            borderSide:  BorderSide(
+                                              color: Colors.grey.withOpacity(0.3),
+                                            ),
+                                          ),
+                                          focusedErrorBorder:
+                                          OutlineInputBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  4.0),
+                                              borderSide: BorderSide(
+                                                color: ColorManager.error,
+                                              )),
+                                          errorBorder: OutlineInputBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(4.0),
+                                              borderSide: BorderSide(
+                                                color: ColorManager.error,
+                                              )),
+                                        )),
+                                  ),
+                                ),
+                                SizedBox(height: 12,),
+                                Container(
+                                    color: Colors.white,
+                                    child: ElevatedButton(
+
+
+                                        onPressed: () => setState(() => _viewModel.isRequired = !_viewModel.isRequired),
+
+
+                                        style: ButtonStyle(
+                                          backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                          elevation: MaterialStateProperty.all<double>(0),
+                                        ),
+                                        child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                  height: 24.0,
+                                                  width: 24.0,
+                                                  child: Checkbox(
+                                                      value: _viewModel.isRequired,
+                                                      activeColor: AppTheme.accentColor,
+                                                      onChanged: (value){
+                                                        setState(() => _viewModel.isRequired = value ?? false);
+                                                      }
+                                                  )
+                                              ),
+                                              // You can play with the width to adjust your
+                                              // desired spacing
+                                              SizedBox(width: 10.0),
+                                              Text(SharedLocalization.getLocalization!().surveyIsRequired,
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 16,
+
+                                                ),
+                                              )
+                                            ]
+                                        )
+                                    )
+                                ),
+
+                                selectedQuestionType == FormItemType.SingleChoice ||
+                                    selectedQuestionType == FormItemType.MultiChoice ?
+                                Container(
+                                  color: Colors.white,
+                                  child: ReorderableListView.builder(
+                                    itemCount: options.length,
+                                    shrinkWrap: true,
+                                    primary: false,
+                                    onReorderStart: (int x){
+                                      FocusScope.of(context).unfocus();
+                                    },
+                                    onReorder: (oldIndex, newIndex) {
+                                      setState(() {
+                                        if (newIndex > oldIndex) {
+                                          newIndex -= 1;
+                                        }
+                                        final item = options.removeAt(oldIndex);
+                                        options.insert(newIndex, item);
+                                      });
+                                    },
+                                    //  physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context,index){
+                                      return Padding(
+                                        key: ValueKey(options[index]), // Unique Key for ReorderableListView
+                                        padding:  EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                  controller: options[index].optionController,
+                                                  keyboardType: TextInputType.multiline,
+                                                  maxLines: 6,
+                                                  minLines: 1,
+                                                  autofocus: false,
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize:  16),
+                                                  inputFormatters: [
+                                                    // LengthLimitingTextInputFormatter(
+                                                    //     AppConsts.chatMessageMaxLength),
+                                                  ],
+                                                  onChanged: (value) {
+
+                                                  },
+                                                  onTap: () {
+
+                                                  },
+                                                  decoration: InputDecoration(
+                                                    errorStyle: TextStyle(
+                                                      fontSize: 14,
+                                                    ),
+                                                    errorMaxLines: 2,
+                                                    hintText:
+                                                    "${SharedLocalization.getLocalization!().surveyWriteOption} ${index+1}",
+                                                    hintStyle: TextStyle(
+                                                        color: Colors.grey,
+                                                        fontSize:
+                                                        16),
+
+                                                    filled: true,
+                                                    contentPadding: EdgeInsets.only(
+                                                        top: 4, left: 6, right: 6),
+                                                    // suffixIcon: Row(
+                                                    //   mainAxisAlignment: MainAxisAlignmentaceBetween, // added line
+                                                    //   mainAxisSize: MainAxisSize.min, // added line
+                                                    //   children: [
+                                                    //
+                                                    //
+                                                    //
+                                                    //   ],
+                                                    // ),
+
+                                                    fillColor:
+                                                    Colors.white.withOpacity(0.2),
+                                                    enabledBorder: OutlineInputBorder(
+                                                      borderRadius:
+                                                      BorderRadius.circular(4.0),
+                                                      borderSide:  BorderSide(
+                                                        color: Colors.grey.withOpacity(0.3),
+                                                      ),
+                                                    ),
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderRadius:
+                                                      BorderRadius.circular(4.0),
+                                                      borderSide:  BorderSide(
+                                                        color: Colors.grey.withOpacity(0.3),
+                                                      ),
+                                                    ),
+                                                    focusedErrorBorder:
+                                                    OutlineInputBorder(
+                                                        borderRadius:
+                                                        BorderRadius.circular(
+                                                            4.0),
+                                                        borderSide: BorderSide(
+                                                          color: ColorManager.error,
+                                                        )),
+                                                    errorBorder: OutlineInputBorder(
+                                                        borderRadius:
+                                                        BorderRadius.circular(4.0),
+                                                        borderSide: BorderSide(
+                                                          color: ColorManager.error,
+                                                        )),
+                                                  )),
+                                            ),
+
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                SizedBox(width: 8,),
+                                                GestureDetector(
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: AppTheme.accentColor,
+                                                      ),
+                                                      child: Padding(
+                                                        padding: EdgeInsets.all(3.0),
+                                                        child: Icon(Icons.add, color: ColorManager.white, size: 16),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  onTap: () {
+                                                    options.add(ItemModel(TextEditingController(), isHide: false));
+                                                    setState(() {});
+                                                  },
+                                                ),
+
+                                                GestureDetector(
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        //  color: AppTheme.errorColor,
+                                                      ),
+                                                      child: Padding(
+                                                        padding: EdgeInsets.all(3.0),
+                                                        child: Icon(Icons.hide_source_sharp,
+                                                            color:
+                                                            options[index].isHide ?
+                                                            ColorManager.primary:
+                                                            ColorManager.grey, size: 16),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  onTap: () {
+                                                    options[index].isHide = !options[index].isHide;
+                                                    setState(() {});
+
+                                                  },
+                                                ),
+
+                                                GestureDetector(
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: AppTheme.errorColor,
+                                                      ),
+                                                      child: Padding(
+                                                        padding: EdgeInsets.all(3.0),
+                                                        child: Icon(Icons.close, color: ColorManager.white, size: 16),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  onTap: () {
+                                                    if (options.length > 1) {
+                                                      options.removeAt(index);
+                                                      setState(() {});
+                                                    }
+                                                  },
+                                                ),
+
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Colors.transparent,
+                                                  ),
+                                                  child: Icon(Icons.reorder, color: ColorManager.grey2, size: 32),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ) :SizedBox()
 
 
 
-                          ],
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+
+                    GestureDetector(
+                      onTap: (){
+                        if(formkey.currentState?.validate() ?? false){
+                          _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
+                          _viewModel.dynamicFormModel.questions[questionIndex]= QuestionItemModel(
+                              question: questionController.text,
+                              questionType: question.questionType,
+                              options: options,
+                              isRequired: _viewModel.isRequired,
+                              validators: []
+                          );
+                          Navigator.pop(context);
+                        }
+
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentColor,
+                          // borderRadius: BorderRadius.circular(12.r)
+                        ),
+                        child: Center(
+                          child: Text(SharedLocalization.getLocalization!().surveyEditQuestion,
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.whiteColor
+                            ),),
+                        ),
+                      ),
+                    )
+
+                  ],
                 ),
-
-                GestureDetector(
-                  onTap: (){
-                    if(formkey.currentState?.validate() ?? false){
-                      _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
-                      _viewModel.dynamicFormModel.questions[questionIndex]= QuestionItemModel(
-                          question: questionController.text,
-                          questionType: _viewModel.selectedQuestionType,
-                          options: options,
-                          isRequired: _viewModel.isRequired,
-                          validators: []
-                      );
-                      Navigator.pop(context);
-                    }
-
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentColor,
-                      // borderRadius: BorderRadius.circular(12.r)
-                    ),
-                    child: Center(
-                      child: Text(SharedLocalization.getLocalization!().surveyEditQuestion,
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.whiteColor
-                        ),),
-                    ),
-                  ),
-                )
-
-              ],
+              ),
             ),
-          ),
-        );
+          );
       },
     ).then((value) {
       _viewModel.isRequired=false;
@@ -1008,6 +1083,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
+      print("widget.formwidget.form............. ${widget.form.validLocation}");
       _viewModel.startViewModel( widget.form);
       if(!widget.isEdit){
         selectQuestionType();
@@ -1033,255 +1109,386 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                     children: [
                       SizedBox(height: 32,),
 
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-
-                          Padding(
-                            padding:  EdgeInsets.symmetric(horizontal: 12),
-                            child:
-
-                            ElevatedButton(
-                              onPressed: () {
-                                if(_formKey.currentState!.validate()){
-
-                                  print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
-                                  if(widget.isEdit){
-                                    allForms[widget.formIndex ?? 0]=FormModel(
-                                        id: Random().nextInt(100),
-                                        customerName: _viewModel.selectedFormId,
-                                        formName: _viewModel.formName.text,
-                                        questions: _viewModel.dynamicFormModel.questions);
-                                  }else{
-                                    allForms.add(FormModel(
-                                        id: Random().nextInt(100),
-                                        customerName: _viewModel.selectedFormId,
-                                        formName: _viewModel.formName.text,
-                                        questions: _viewModel.dynamicFormModel.questions));
-                                  }
-                                  Navigator.pop(context);
-                                }
-                              },
-                              child:  Text(
-                                widget.isEdit?
-                                SharedLocalization.getLocalization!().surveyEdit:
-                                SharedLocalization.getLocalization!().save,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                       Form(
                         key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _viewModel.formName,
-                              decoration:
-                              AppInputDecorationTheme.standardInput(
-                                label: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5),
-                                  child: Text(
-                                    SharedLocalization
-                                        .getLocalization!().surveyFormName,
-                                  ),
-                                ),
-                                hintText: SharedLocalization
-                                    .getLocalization!().surveyWriteFormName,
-                                isEnabled: false,
-                              ),
-                              validator: (value) {
-                                return CustomValidators.isEmptyValidator(
-                                    value);
-                              },
-                              onChanged: (String val){
-                                _viewModel.dynamicFormModel.formName =val;
-                              },
-                            ),
-                            //SizedBox(height: 12,),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                border: Border.all(color: Colors.grey.withOpacity(0.6)),
-                              ),
-                              padding: const EdgeInsets.only(left: 8, right: 8, top: 22),
-                              child: DropdownButtonFormField<ClientItemModel?>(
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.grey.withOpacity(0.2),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.transparent),
-                                  ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.transparent),
-                                  ),
-                                  border: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.transparent),
-                                  ),
-                                ),
-                                iconSize: 20,
-                                style: TextStyle(fontSize: 16),
-                                hint: Text(
-                                  SharedLocalization.getLocalization!().selectClient,
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                value: _viewModel.selectedFormId,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _viewModel.selectedFormId = value;
-                                  });
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Column(
+
+                            children: [
+                              TextFormField(
+                                controller: _viewModel.formName,
+                                onTapOutside: (PointerDownEvent v){
+                                  FocusScope.of(context).requestFocus(new FocusNode());
                                 },
-                                items: _viewModel.allClients.map((formItem) {
-                                  return DropdownMenuItem<ClientItemModel?>(
-                                    value: formItem,
+                                decoration:
+                                AppInputDecorationTheme.standardInput(
+                                  label: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5),
                                     child: Text(
-                                      formItem.name,
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                      ),
+                                      SharedLocalization
+                                          .getLocalization!().surveyFormName,
                                     ),
-                                  );
-                                }).toList(),
+                                  ),
+
+                                  hintText: SharedLocalization
+                                      .getLocalization!().surveyWriteFormName,
+                                  isEnabled: false,
+                                ),
                                 validator: (value) {
-                                  if (value == null) {
-                                    return SharedLocalization.getLocalization!().pleaseSelectAClient;
-                                  }
-                                  return null; // Validation passes
+                                  return CustomValidators.isEmptyValidator(
+                                      value);
+                                },
+                                onChanged: (String val){
+                                  _viewModel.dynamicFormModel.formName =val;
                                 },
                               ),
-                            ),
+                             SizedBox(height: 8,),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                   Text(
+                                    '${SharedLocalization.getLocalization!().verifySite}',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  Switch(
+                                    value: _viewModel.validLocation,
+                                    activeColor: AppTheme.whiteColor ,
+                                    activeTrackColor: AppTheme.accentColor,
+                                    inactiveThumbColor: AppTheme.whiteColor,
+                                    inactiveTrackColor: const Color(0xffE5E5E5),
+                                    onChanged: (bool value) {
+                                      _viewModel.toggleLocation(value);
+                                    },
+                                  ),
+                                ],
+                              ),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                   Text(
+                                    '${SharedLocalization.getLocalization!().showSurveyID}',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  Switch(
+                                    value: _viewModel.showSurveyID,
+                                    activeColor: AppTheme.whiteColor ,
+                                    activeTrackColor: AppTheme.accentColor,
+                                    inactiveThumbColor: AppTheme.whiteColor,
+                                    inactiveTrackColor: const Color(0xffE5E5E5),
+                                    onChanged: (bool value) {
+                                      _viewModel.toggleShowSurveyId(value);
+                                    },
+                                  ),
+                                ],
+                              ),
 
 
 
 
-                          ],
+
+                            ],
+                          ),
                         ),
                       ),
-                      ListView.builder(
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ReorderableListView.builder(
                           itemCount: _viewModel.dynamicFormModel.questions.length,
-                          primary: false,
                           shrinkWrap: true,
-                          itemBuilder: (context,index){
-                        return GestureDetector(
-                          onTap: (){
-                            editQuestionModel(_viewModel.dynamicFormModel.questions[index].questionType ?? FormItemType.ShortText
-                                ,_viewModel.dynamicFormModel.questions[index],index);
+                          primary: false,
+                          onReorder: (oldIndex, newIndex) {
+                            setState(() {
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              final item = _viewModel.dynamicFormModel.questions.removeAt(oldIndex);
+                              _viewModel.dynamicFormModel.questions.insert(newIndex, item);
+                            });
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                             decoration: BoxDecoration(
-                               borderRadius:
-                               BorderRadius.circular(8.0),
-                               border: Border.all(color: Colors.grey.withOpacity(0.3))
-                             ),
-                              child: Padding(
-                                padding:  EdgeInsets.symmetric(horizontal: 10.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 12,),
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            //  color :Colors.yellow,
-                                              child: Icon(Icons.close,color: AppTheme.errorColor,)),
-                                          onTap: (){
-                                            _viewModel.dynamicFormModel.questions.removeAt(index);
-                                            setState(() {});
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                   Row(crossAxisAlignment: CrossAxisAlignment.center,
-                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                     children: [
-                                       Row(
-                                         crossAxisAlignment: CrossAxisAlignment.center,
-                                         mainAxisAlignment: MainAxisAlignment.start,
-                                         children: [
-                                           Container(
-                                             width: MediaQuery.of(context).size.width * 0.6,
-                                             child: Text("${_viewModel.dynamicFormModel.questions[index].question}",
-                                               style: TextStyle(
-                                                   color: Colors.black,
-
-                                                   fontSize: 16,
-                                                   fontWeight: FontWeight.bold
-                                               ),
-                                             ),
-                                           ),
-                                           SizedBox(width: 6,),
-                                           Text(_viewModel.dynamicFormModel.questions[index].isRequired ? '*':'',
-
-                                           style: TextStyle(
-                                             color: Colors.red,
-
-                                             fontSize: 14,
-                                             fontWeight: FontWeight.bold
-                                           ),
-                                           ),
-
-                                         ],
-                                       ),
-                                       Text("${_viewModel.dynamicFormModel.questions[index].questionType.toString().replaceAll('FormItemType.', '')}",
-                                         style: TextStyle(
-                                                  fontSize: 16,
-                                             fontWeight: FontWeight.bold
-                                         ),
-                                       ),
-                                     ],
-                                   ),
-                                    // SizedBox(height: 6,),
-                                    // Text("${_viewModel.dynamicFormModel.questions[index].questionType.toString().replaceAll('FormItemType.', '')}",
-                                    //   style: TextStyle(
-                                    //       color: Colors.black,
-                                    //       ,
-                                    //       fontSize: 16,
-                                    //       fontWeight: FontWeight.bold
-                                    //   ),
-                                    // ),
-                                    _viewModel.dynamicFormModel.questions[index].options.length > 2 ?
-                                    Container(
-                                      width: double.infinity,
-                                      height: 24,
-                                      color: Colors.transparent,
-
-                                      child: ListView.builder(
-                                          itemCount: _viewModel.dynamicFormModel.questions[index].options.length,
-                                          scrollDirection: Axis.horizontal,
-                                          itemBuilder: (context,i){
-                                        return    Text("${_viewModel.dynamicFormModel.questions[index].options[i].optionController.text} , ",
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold
-                                          ),
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Unique Key for ReorderableListView
+                              onTap: (){
+                                        editQuestionModel(
+                                          _viewModel.dynamicFormModel.questions[index].questionType ?? FormItemType.ShortText,
+                                          _viewModel.dynamicFormModel.questions[index],
+                                          index,
                                         );
-                                      }),
-                                    ):SizedBox(),
+                              },
+                              child: Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                margin: EdgeInsets.only(bottom: 12),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      /// **Row: Drag Handle & Delete Button**
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(Icons.drag_handle, color: Colors.grey), // Drag Indicator
+                                              SizedBox(width: 8),
+                                              Text(
+                                                "Q${index + 1}",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.deepPurple,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
 
-                                    SizedBox(height: 12,),
-                                  ],
+
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(Icons.hide_source, color:
+                                                _viewModel.dynamicFormModel.questions[index].isHide?
+                                                AppTheme.primaryColor:
+                                                Colors.grey),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _viewModel.dynamicFormModel.questions[index].isHide=
+
+                                                        !_viewModel.dynamicFormModel.questions[index].isHide;
+                                                  });
+                                                },
+                                              ),
+                                              IconButton(
+                                                icon: Icon(Icons.close, color: Colors.redAccent),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _viewModel.dynamicFormModel.questions.removeAt(index);
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+
+                                      /// **Question Title**
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                        child: Text(
+                                          _viewModel.dynamicFormModel.questions[index].question ?? '',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+
+                                      /// **Question Type & Required Indicator**
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            _viewModel.dynamicFormModel.questions[index].questionType.toString() .replaceAll('FormItemType.', ''),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.deepPurple,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (_viewModel.dynamicFormModel.questions[index].isRequired)
+                                            Text(
+                                              "${SharedLocalization.getLocalization!().surveyIsRequired}",
+                                              style: TextStyle(
+                                                color: Colors.redAccent,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              //padding: EdgeInsets.all(8),
-                            ),
-                          ),
-                        );
-                      })
-                    ],
+                            );
+                          },
+                        ),
+                      ),
+                  // ReorderableListView.builder(
+                  //   itemCount: _viewModel.dynamicFormModel.questions.length,
+                  //   shrinkWrap: true,
+                  //   primary: false,
+                  //   onReorder: (oldIndex, newIndex) {
+                  //     setState(() {
+                  //       if (newIndex > oldIndex) {
+                  //         newIndex -= 1;
+                  //       }
+                  //       final item = _viewModel.dynamicFormModel.questions.removeAt(oldIndex);
+                  //       _viewModel.dynamicFormModel.questions.insert(newIndex, item);
+                  //     });
+                  //   },
+                  //   itemBuilder: (context, index) {
+                  //     return GestureDetector(
+                  //       key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Ensure unique keys
+                  //       onTap: () {
+                  //         editQuestionModel(
+                  //           _viewModel.dynamicFormModel.questions[index].questionType ?? FormItemType.ShortText,
+                  //           _viewModel.dynamicFormModel.questions[index],
+                  //           index,
+                  //         );
+                  //       },
+                  //       child: Padding(
+                  //         padding: const EdgeInsets.all(8.0),
+                  //         child: Container(
+                  //           decoration: BoxDecoration(
+                  //             borderRadius: BorderRadius.circular(8.0),
+                  //             border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                  //           ),
+                  //           child: Padding(
+                  //             padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  //             child: Column(
+                  //               mainAxisAlignment: MainAxisAlignment.start,
+                  //               crossAxisAlignment: CrossAxisAlignment.start,
+                  //               children: [
+                  //                 SizedBox(height: 12),
+                  //                 Row(
+                  //                   crossAxisAlignment: CrossAxisAlignment.center,
+                  //                   mainAxisAlignment: MainAxisAlignment.end,
+                  //                   children: [
+                  //                     GestureDetector(
+                  //                       child: Icon(Icons.close, color: AppTheme.errorColor),
+                  //                       onTap: () {
+                  //                         _viewModel.dynamicFormModel.questions.removeAt(index);
+                  //                         setState(() {});
+                  //                       },
+                  //                     ),
+                  //                   ],
+                  //                 ),
+                  //                 Row(
+                  //                   crossAxisAlignment: CrossAxisAlignment.center,
+                  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //                   children: [
+                  //                     Row(
+                  //                       crossAxisAlignment: CrossAxisAlignment.center,
+                  //                       mainAxisAlignment: MainAxisAlignment.start,
+                  //                       children: [
+                  //                         Container(
+                  //                           width: MediaQuery.of(context).size.width * 0.6,
+                  //                           child: Text(
+                  //                             "${_viewModel.dynamicFormModel.questions[index].question}",
+                  //                             style: TextStyle(
+                  //                               color: Colors.black,
+                  //                               fontSize: 16,
+                  //                               fontWeight: FontWeight.bold,
+                  //                             ),
+                  //                           ),
+                  //                         ),
+                  //                         SizedBox(width: 6),
+                  //                         Text(
+                  //                           _viewModel.dynamicFormModel.questions[index].isRequired ? '*' : '',
+                  //                           style: TextStyle(
+                  //                             color: Colors.red,
+                  //                             fontSize: 14,
+                  //                             fontWeight: FontWeight.bold,
+                  //                           ),
+                  //                         ),
+                  //                       ],
+                  //                     ),
+                  //                     Text(
+                  //                       _viewModel.dynamicFormModel.questions[index].questionType
+                  //                           .toString()
+                  //                           .replaceAll('FormItemType.', ''),
+                  //                       style: TextStyle(
+                  //                         fontSize: 16,
+                  //                         fontWeight: FontWeight.bold,
+                  //                       ),
+                  //                     ),
+                  //                   ],
+                  //                 ),
+                  //                 // if (_viewModel.dynamicFormModel.questions[index].options.length > 2)
+                  //                 //   Container(
+                  //                 //     width: double.infinity,
+                  //                 //     height: 24,
+                  //                 //     color: Colors.transparent,
+                  //                 //     child: ListView.builder(
+                  //                 //       itemCount: _viewModel.dynamicFormModel.questions[index].options.length,
+                  //                 //       scrollDirection: Axis.horizontal,
+                  //                 //       itemBuilder: (context, i) {
+                  //                 //         return Text(
+                  //                 //           "${_viewModel.dynamicFormModel.questions[index].options[i].optionController.text}, ",
+                  //                 //           style: TextStyle(
+                  //                 //             color: Colors.black,
+                  //                 //             fontSize: 16,
+                  //                 //             fontWeight: FontWeight.bold,
+                  //                 //           ),
+                  //                 //         );
+                  //                 //       },
+                  //                 //     ),
+                  //                 //   ),
+                  //                 SizedBox(height: 12),
+                  //               ],
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     );
+                  //   },
+                  // )
+
+                  ],
                   ),
                 ):const SizedBox();
             })
 
+      ),
+      bottomNavigationBar:Padding(
+        padding: const EdgeInsets.only(left: 12.0,right:12.0,bottom: 12),
+        child: ElevatedButton(
+          onPressed: () {
+            if(_formKey.currentState!.validate()){
+
+              if(_viewModel.dynamicFormModel.questions.isNotEmpty){
+                print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
+                if(widget.isEdit){
+
+                  allForms[widget.formIndex ?? 0]=FormModel(
+                      id: const Uuid().v1(),
+                      customerName: _viewModel.selectedFormId,
+                      formName: _viewModel.formName.text,
+                      validLocation: _viewModel.validLocation,
+                      showSurveyId: _viewModel.showSurveyID,
+                      questions: _viewModel.dynamicFormModel.questions
+
+                  );
+                }
+                else{
+                  allForms.add(FormModel(
+                      id: const Uuid().v1(),
+                      customerName: _viewModel.selectedFormId,
+                      formName: _viewModel.formName.text,
+                      validLocation: _viewModel.validLocation,
+                      showSurveyId: _viewModel.showSurveyID,
+                      questions: _viewModel.dynamicFormModel.questions));
+                }
+                Navigator.pop(context);
+              }else{
+                Toaster.error(
+                    content: Text(SharedLocalization
+                        .getLocalization!().survey_question_number_error));
+              }
+
+            }
+          },
+          child:  Text(
+            widget.isEdit?
+            SharedLocalization.getLocalization!().surveyEdit:
+            SharedLocalization.getLocalization!().save,
+          ),
+        ),
       ),
       floatingActionButton:  FloatingActionButton(
           elevation: 0.0,

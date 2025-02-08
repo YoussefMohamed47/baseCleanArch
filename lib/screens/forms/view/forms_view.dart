@@ -12,6 +12,7 @@ import 'package:shared_module/Widget/primary_container.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../app/app_enums.dart';
 import '../../../domain/model/make_form_template/form_model.dart';
@@ -105,16 +106,21 @@ class _FormsScreenState extends State<FormsScreen> {
                         if(widget.isQuestionnaires){
                           List<FormItem> temp = [];
                           for(int i =0 ; i < allForms[index].questions.length ; i ++){
-                            List<String> options = [];
+                            List<OptionQuestionnaireModel> options = [];
                             for(int o =0 ; o < allForms[index].questions[i].options.length ; o ++){
                               for(int j =0 ; j < allForms[index].questions[i].options[o].optionController.text.split(",").length ; j ++){
-                                options.add(allForms[index].questions[i].options[o].optionController.text.split(",")[j]);
+                                options.add(
+                                    OptionQuestionnaireModel(
+                                      option:  allForms[index].questions[i].options[o].optionController.text.split(",")[j],
+                                      isHide:  allForms[index].questions[i].options[o].isHide)
+                                   );
                               }
                             }
                             temp.add(FormItem(question:allForms[index].questions[i].question ?? '',
                                 questionType: allForms[index].questions[i].questionType ?? FormItemType.ShortText,
                                 isRequired:  allForms[index].questions[i].isRequired,
-                                options:options
+                                options:options,
+                              isHide: allForms[index].questions[i].isHide
                             ));
                           }
                           Navigator.push(
@@ -123,6 +129,7 @@ class _FormsScreenState extends State<FormsScreen> {
                                   builder: (context) => DynamicForm(
                                     formName: allForms[index].formName ?? '',
                                     formItems:  temp,
+
 
                                   )));
                         }else{
@@ -187,9 +194,11 @@ class _FormsScreenState extends State<FormsScreen> {
                                   await  Navigator.of(context).push(MaterialPageRoute(
                                       builder: (ctx) =>  BuildFormsScreens(
                                         form: FormModel(
-                                          id: rng.nextInt(100),
+                                          id: const Uuid().v1(),
                                           customerName: allForms[index].customerName,
                                           formName: allForms[index].formName,
+                                          validLocation: allForms[index].validLocation,
+                                          showSurveyId: allForms[index].showSurveyId,
                                           questions: allForms[index].questions,),
                                         isEdit: true,
                                         formIndex: index,
@@ -220,7 +229,9 @@ class _FormsScreenState extends State<FormsScreen> {
             await  Navigator.of(context).push(MaterialPageRoute(
                 builder: (ctx) =>  BuildFormsScreens(
                   form: FormModel(
-                      id: rng.nextInt(100),
+                      id: const Uuid().v1(),
+                      validLocation: false,
+
                       formName: '',questions: []),
                   isEdit: false,
                 )));

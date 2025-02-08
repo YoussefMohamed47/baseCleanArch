@@ -9,6 +9,7 @@ import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart'
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
 import 'package:questionnaire/domain/usecase/make_form_template_usecase.dart';
 import 'package:shared_module/localization/shared.localization.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
@@ -19,18 +20,33 @@ class MakeFormTemplateViewModel extends BaseViewModel
   MakeFormTemplateViewModel(this._makeFormTemplateUseCase) : super();
 
   final AppPreferences _appPreferences = instance<AppPreferences>();
+
+
   StreamController<MakeFormTemplateUseCaseModel>
   _makeFormTemplateStreamController =
   StreamController<MakeFormTemplateUseCaseModel>.broadcast();
   final MakeFormTemplateUseCaseModel _model =
   MakeFormTemplateUseCaseModel();
 
-  FormItemType selectedQuestionType =FormItemType.ShortText;
-
+  FormItemType? selectedQuestionType ;
+//=FormItemType.ShortText
   bool isRequired=false;
-  FormModel dynamicFormModel = FormModel(  id: Random().nextInt(100),formName: "",questions: []);
+  FormModel dynamicFormModel = FormModel(  id:const Uuid().v1(),formName: "",questions: []);
   TextEditingController formName = TextEditingController();
   ClientItemModel? selectedFormId;
+
+  bool validLocation = false;
+  bool showSurveyID = false;
+
+  toggleLocation(bool val){
+    validLocation =val;
+    postDataToView();
+  }
+
+  toggleShowSurveyId(bool val){
+    showSurveyID =val;
+    postDataToView();
+  }
 
   List<QuestionTypeModel> questionTypeList = [
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ShortText] ?? 2,
@@ -68,9 +84,14 @@ class MakeFormTemplateViewModel extends BaseViewModel
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Attachment] ?? 9,
     '${SharedLocalization.getLocalization!().attachment}',
         FormItemType.Attachment
-    ),   QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
+    ),
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
     '${SharedLocalization.getLocalization!().location}',
         FormItemType.Location
+    ),
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 11,
+    '${SharedLocalization.getLocalization!().client}',
+        FormItemType.Client
     ),
 
 
@@ -109,8 +130,10 @@ class MakeFormTemplateViewModel extends BaseViewModel
       StreamController<MakeFormTemplateUseCaseModel>.broadcast();
     }
     dynamicFormModel = form;
-    print("dynamicFormModel.customerName ${dynamicFormModel.customerName?.name}");
+    print("dynamicFormModel.customerName ${dynamicFormModel.showSurveyId}");
     formName.text= dynamicFormModel.formName ?? '';
+    validLocation = dynamicFormModel.validLocation ?? false;
+    showSurveyID = dynamicFormModel.showSurveyId ?? false;
     //selectedFormId= allClients[0];//dynamicFormModel.customerName;
 
     if(dynamicFormModel.customerName?.name != null){

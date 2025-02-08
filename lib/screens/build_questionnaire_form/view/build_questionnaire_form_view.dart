@@ -58,7 +58,7 @@
 //                         ),
 //                         validator: (value) {
 //                           if (formItem.isRequired && value?.isEmpty == true) {
-//                             return 'This field is required';
+//                             return SharedLocalization.getLocalization!().filedRequired;
 //                           }
 //                           if (value != null && value.length > 50) {
 //                             return 'Must not exceed 50 characters';
@@ -98,7 +98,7 @@
 //                         maxLines: 6,
 //                         validator: (value) {
 //                           if (formItem.isRequired && value?.isEmpty == true) {
-//                             return 'This field is required';
+//                             return SharedLocalization.getLocalization!().filedRequired;
 //                           }
 //                           return null;
 //                         },
@@ -144,7 +144,7 @@
 //                         },
 //                         validator: (value) {
 //                           if (formItem.isRequired && value == null) {
-//                             return 'Please select an option';
+//                             return SharedLocalization.getLocalization!().pleaseSelectOption;
 //                           }
 //                           return null;
 //                         },
@@ -214,11 +214,11 @@
 //                         keyboardType: TextInputType.number,
 //                         validator: (value) {
 //                           if (formItem.isRequired && value!.isEmpty) {
-//                             return 'This field is required';
+//                             return SharedLocalization.getLocalization!().filedRequired;
 //                           }
 //                           if (value != null &&
 //                               int.tryParse(value) == null) {
-//                             return 'Please enter a valid number';
+//                             return SharedLocalization.getLocalization!().validNumber;
 //                           }
 //                           return null;
 //                         },
@@ -256,11 +256,11 @@
 //                         keyboardType: TextInputType.numberWithOptions(decimal: true),
 //                         validator: (value) {
 //                           if (formItem.isRequired && value!.isEmpty) {
-//                             return 'This field is required';
+//                             return SharedLocalization.getLocalization!().filedRequired;
 //                           }
 //                           if (value != null &&
 //                               double.tryParse(value) == null) {
-//                             return 'Please enter a valid number';
+//                             return SharedLocalization.getLocalization!().validNumber;
 //                           }
 //                           return null;
 //                         },
@@ -311,7 +311,7 @@
 //                         },
 //                         validator: (value) {
 //                           if (formItem.isRequired && value!.isEmpty) {
-//                             return 'This field is required';
+//                             return SharedLocalization.getLocalization!().filedRequired;
 //                           }
 //                           return null;
 //                         },
@@ -362,7 +362,7 @@
 //                         },
 //                         validator: (value) {
 //                           if (formItem.isRequired && value!.isEmpty) {
-//                             return 'This field is required';
+//                             return SharedLocalization.getLocalization!().filedRequired;
 //                           }
 //                           return null;
 //                         },
@@ -406,6 +406,7 @@ import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../../domain/model/client_model.dart';
 import '../widgets/attachment_widget.dart';
 import '../widgets/location_widget.dart';
 
@@ -419,8 +420,9 @@ import 'package:geolocator/geolocator.dart';
 class DynamicForm extends StatefulWidget {
   final String formName;
   final List<FormItem> formItems;
+   bool? validLocation;
 
-  DynamicForm({required this.formName, required this.formItems});
+  DynamicForm({required this.formName, required this.formItems,this.validLocation =  false});
 
   @override
   _DynamicFormState createState() => _DynamicFormState();
@@ -430,7 +432,56 @@ class _DynamicFormState extends State<DynamicForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Map<String, dynamic> _formData = {};
   int _currentQuestionIndex = 0;
+  ClientItemModel? selectedFormId;
 
+
+  Future<Map<String, double>> getCurrentLatLon() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception("Location services are disabled.");
+    }
+
+    // Check and request permissions
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception("Location permissions are denied.");
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception(
+          "Location permissions are permanently denied. Cannot access location.");
+    }
+
+    // Get current position
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    // Return latitude and longitude
+    return {
+      "latitude": position.latitude,
+      "longitude": position.longitude,
+    };
+  }
+
+
+  List<ClientItemModel> allClients = [
+    ClientItemModel(id: 1, name: 'عميل رقم ١'),
+    ClientItemModel(id: 2, name: 'عميل رقم ٢'),
+    ClientItemModel(id: 3, name: 'عميل رقم ٣'),
+  ];
+
+  @override
+  void initState() {
+    print("kkkkkkkkk lavalidLocationt : ${widget.validLocation}");
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     final FormItem currentFormItem = widget.formItems[_currentQuestionIndex];
@@ -468,6 +519,19 @@ class _DynamicFormState extends State<DynamicForm> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (_formKey.currentState!.validate()) {
+            if((widget.validLocation ?? false)){
+              Future.microtask(() async {
+                try {
+                    Map<String, double> coordinates = await getCurrentLatLon();
+                    print("Latitude: ${coordinates['latitude']}");
+                    print("Longitude: ${coordinates['longitude']}");
+                    double? lat=coordinates['latitude'] ;
+                    double? long=coordinates['longitude'];
+                } catch (e) {
+                  print("Error: $e");
+                }
+              });
+            }
             _formKey.currentState!.save();
             // Do something with the form data
             print(_formData);
@@ -509,10 +573,10 @@ class _DynamicFormState extends State<DynamicForm> {
               ),
               validator: (value) {
                 if (formItem.isRequired && value?.isEmpty == true) {
-                  return 'This field is required';
+                  return SharedLocalization.getLocalization!().filedRequired;
                 }
                 if (value != null && value.length > 50) {
-                  return 'Must not exceed 50 characters';
+                  return SharedLocalization.getLocalization!().short_error;
                 }
                 return null;
               },
@@ -549,7 +613,7 @@ class _DynamicFormState extends State<DynamicForm> {
               maxLines: 6,
               validator: (value) {
                 if (formItem.isRequired && value?.isEmpty == true) {
-                  return 'This field is required';
+                  return SharedLocalization.getLocalization!().filedRequired;
                 }
                 return null;
               },
@@ -558,11 +622,15 @@ class _DynamicFormState extends State<DynamicForm> {
           ],
         );
       case FormItemType.SingleChoice:
+
+        formItem.options ??= [];
+        List<String> options = formItem.options!
+            .where((option) => option.isHide == false) // Filter hidden options
+            .map((option) => option.option) // Extract the option string
+            .toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Text(formItem.question),
-            // SizedBox(height: 12,),
             DropdownButtonFormField<String>(
               value: null,
               decoration: InputDecoration(
@@ -582,12 +650,17 @@ class _DynamicFormState extends State<DynamicForm> {
                   borderRadius: BorderRadius.circular(5.0),
                 ),
               ),
-              items: formItem.options!
-                  .map((option) => DropdownMenuItem(
-                        child: Text(option),
-                        value: option,
-                      ))
-                  .toList(),
+              items: [
+                if (!formItem.isRequired)
+                  DropdownMenuItem<String>(
+                    child: Text(""),
+                    value: null,
+                  ),
+                ...options!.map((option) => DropdownMenuItem(
+                  child: Text(option),
+                  value: option,
+                )),
+              ],
               onChanged: (value) {
                 setState(() {
                   _formData[formItem.question] = value;
@@ -595,7 +668,7 @@ class _DynamicFormState extends State<DynamicForm> {
               },
               validator: (value) {
                 if (formItem.isRequired && value == null) {
-                  return 'Please select an option';
+                  return SharedLocalization.getLocalization!().pleaseSelectOption;
                 }
                 return null;
               },
@@ -603,39 +676,45 @@ class _DynamicFormState extends State<DynamicForm> {
           ],
         );
       case FormItemType.MultiChoice:
+        formItem.options ??= [];
+        List<String> options = formItem.options!
+            .where((option) => option.isHide == false) // Filter hidden options
+            .map((option) => option.option) // Extract the option string
+            .toList();
+        List<String> validOptions = options
+            .where((option) {
+              print("fdfsdfdf ${option}");
+              return  option.trim().isNotEmpty;
+        })
+            .toList(); // Convert to a list once to avoid multiple iterations
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text(formItem.question),
-            // SizedBox(height: 12,),
-            Column(
-              children: formItem.options!
-                  .map((option) => CheckboxListTile(
-                        title: Text(option),
-                        value: _formData[formItem.question] != null
-                            ? _formData[formItem.question].contains(option)
-                            : false,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            if (value != null) {
-                              List<String> selectedOptions =
-                                  _formData[formItem.question] != null
-                                      ? List.from(_formData[formItem.question])
-                                      : [];
-                              if (value) {
-                                selectedOptions.add(option);
-                              } else {
-                                selectedOptions.remove(option);
-                              }
-                              _formData[formItem.question] = selectedOptions;
-                            }
-                          });
-                        },
-                      ))
-                  .toList(),
-            ),
-          ],
+          children: validOptions.isEmpty
+              ? [] // If no valid options, return an empty widget (prevents empty space)
+              : validOptions.map((option) => CheckboxListTile(
+            title: Text(option),
+            value: (_formData[formItem.question] as List<String>?)?.contains(option) ?? false,
+            onChanged: (bool? value) {
+              if (value == null) return;
+
+              //setState(() {
+                List<String> selectedOptions =
+                    (_formData[formItem.question] as List<String>?) ?? [];
+
+                if (value) {
+                  selectedOptions.add(option);
+                } else {
+                  selectedOptions.remove(option);
+                }
+
+                _formData[formItem.question] = selectedOptions;
+              //});
+            },
+          )).toList(),
         );
+
+
       case FormItemType.Number:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -665,10 +744,10 @@ class _DynamicFormState extends State<DynamicForm> {
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (formItem.isRequired && value!.isEmpty) {
-                  return 'This field is required';
+                  return SharedLocalization.getLocalization!().filedRequired;
                 }
                 if (value != null && int.tryParse(value) == null) {
-                  return 'Please enter a valid number';
+                  return SharedLocalization.getLocalization!().validNumber;
                 }
                 return null;
               },
@@ -709,12 +788,12 @@ class _DynamicFormState extends State<DynamicForm> {
                 print("22222:..... ${(value != null)}");
                 print("333:..... ${double.tryParse(value ?? '') == null}");
                 if (formItem.isRequired && value!.isEmpty) {
-                  return 'This field is required';
+                  return SharedLocalization.getLocalization!().filedRequired;
                 }
                 if ((value != null) &&
                     (double.tryParse(value) == null) &&
                     !(value.contains("."))) {
-                  return 'Please enter a valid number';
+                  return SharedLocalization.getLocalization!().validNumber;
                 }
                 return null;
               },
@@ -765,7 +844,7 @@ class _DynamicFormState extends State<DynamicForm> {
               },
               validator: (value) {
                 if (formItem.isRequired && value!.isEmpty) {
-                  return 'This field is required';
+                  return SharedLocalization.getLocalization!().filedRequired;
                 }
                 return null;
               },
@@ -816,7 +895,7 @@ class _DynamicFormState extends State<DynamicForm> {
               },
               validator: (value) {
                 if (formItem.isRequired && value!.isEmpty) {
-                  return 'This field is required';
+                  return SharedLocalization.getLocalization!().filedRequired;
                 }
                 return null;
               },
@@ -878,6 +957,61 @@ class _DynamicFormState extends State<DynamicForm> {
                   ),
           ),
         );
+      case FormItemType.Client:
+        return  Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+          //  border: Border.all(color: Colors.grey.withOpacity(0.6)),
+          ),
+         // padding: const EdgeInsets.only(left: 8, right: 8, top: 0 ),
+          child: DropdownButtonFormField<ClientItemModel?>(
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.grey.withOpacity(0.2),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.transparent),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.transparent),
+              ),
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.transparent),
+              ),
+            ),
+            iconSize: 20,
+            style: TextStyle(fontSize: 16),
+            hint: Text(
+              SharedLocalization.getLocalization!().selectClient,
+              style: TextStyle(fontSize: 16),
+            ),
+            value: selectedFormId,
+            onChanged: (value) {
+              setState(() {
+                selectedFormId = value;
+              });
+            },
+            items: allClients.map((formItem) {
+              return DropdownMenuItem<ClientItemModel?>(
+                value: formItem,
+                child: Text(
+                  formItem.name,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }).toList(),
+            validator: (value) {
+              if (value == null) {
+                return SharedLocalization.getLocalization!().pleaseSelectAClient;
+              }
+              return null; // Validation passes
+            },
+          ),
+        );
+
+
 
       //   Column(
       //   crossAxisAlignment: CrossAxisAlignment.start,
@@ -951,7 +1085,7 @@ class _DynamicFormState extends State<DynamicForm> {
       //       const Padding(
       //         padding: EdgeInsets.only(top: 8.0),
       //         child: Text(
-      //           'This field is required',
+      //           SharedLocalization.getLocalization!().filedRequired,
       //           style: TextStyle(color: Colors.red, fontSize: 12),
       //         ),
       //       ),
