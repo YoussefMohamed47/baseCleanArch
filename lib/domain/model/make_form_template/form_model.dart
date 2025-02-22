@@ -1,5 +1,5 @@
 import 'package:questionnaire/app/app_enums.dart';
-import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
+import 'package:questionnaire/domain/model/make_form_template/QuestionOptionModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamic_form_validator.dart';
 import 'package:questionnaire/domain/model/make_form_template/question_item_model.dart';
 
@@ -8,7 +8,6 @@ import '../client_model.dart';
 class FormModel {
   String id;
   String? formName;
-
   bool? validLocation;
   bool? showSurveyId;
   ClientItemModel? customerName;

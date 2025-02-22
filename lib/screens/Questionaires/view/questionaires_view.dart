@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:questionnaire/app/di.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/screens/Questionaires/viewmodel/questionaires_viewmodel.dart';
 import 'package:questionnaire/screens/add_questioaires/view/add_questioaires_view.dart';
@@ -354,7 +354,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
 
 
                           if(widget.isQuestionnaires){
-                            List<FormItem> temp = [];
+                            List<QuestionairesItem> temp = [];
                             for(int i =0 ; i < forms[index].questions.length ; i ++){
                               List<OptionQuestionnaireModel> options = [];
                               for(int o =0 ; o < forms[index].questions[i].options.length ; o ++){
@@ -368,7 +368,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                       );
                                 }
                               }
-                              temp.add(FormItem(question:forms[index].questions[i].question ?? '',
+                              temp.add(QuestionairesItem(question:forms[index].questions[i].question ?? '',
                                   questionType: forms[index].questions[i].questionType ?? FormItemType.ShortText,
                                   isRequired:  forms[index].questions[i].isRequired,
                                   options:options,

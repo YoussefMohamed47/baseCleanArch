@@ -7,7 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/app/app_shared.dart';
 import 'package:questionnaire/app/di.dart';
-import 'package:questionnaire/domain/model/make_form_template/ItemModel.dart';
+import 'package:questionnaire/domain/model/make_form_template/QuestionOptionModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/question_item_model.dart';
 import 'package:questionnaire/presentation/resources/color_manager.dart';
@@ -167,10 +167,10 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
   addQuestionModel(FormItemType selectedQuestionType){
     TextEditingController questionController = TextEditingController();
-    List<ItemModel> options=[];
+    List<QuestionOptionModel> options=[];
     final formkey = GlobalKey<FormState>();
 
-    options.add(ItemModel(
+    options.add(QuestionOptionModel(
       TextEditingController(),
       isHide: false
     ));
@@ -491,7 +491,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                 ),
                                               ),
                                               onTap: () {
-                                                options.add(ItemModel(TextEditingController(), isHide: false));
+                                                options.add(QuestionOptionModel(TextEditingController(), isHide: false));
                                                 setState(() {});
                                               },
                                             ),
@@ -579,7 +579,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                               questionType: _viewModel.selectedQuestionType,
                               options: options,
                               isRequired: _viewModel.isRequired,
-                              validators: []
+                              // validators: []
                           ));
                           Navigator.pop(context);
                           Navigator.pop(context);
@@ -623,7 +623,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
   editQuestionModel(FormItemType selectedQuestionType, QuestionItemModel question,int questionIndex){
     TextEditingController questionController = TextEditingController();
     questionController.text=question.question ?? '';
-    List<ItemModel> options=[];
+    List<QuestionOptionModel> options=[];
     options=question.options;
     _viewModel.isRequired = question.isRequired;
 
@@ -951,7 +951,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     ),
                                                   ),
                                                   onTap: () {
-                                                    options.add(ItemModel(TextEditingController(), isHide: false));
+                                                    options.add(QuestionOptionModel(TextEditingController(), isHide: false));
                                                     setState(() {});
                                                   },
                                                 ),
@@ -1037,7 +1037,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                               questionType: question.questionType,
                               options: options,
                               isRequired: _viewModel.isRequired,
-                              validators: []
+                             // validators: []
                           );
                           Navigator.pop(context);
                         }

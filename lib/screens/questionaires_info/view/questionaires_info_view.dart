@@ -1,6 +1,6 @@
 // import 'package:flutter/material.dart';
 // import 'package:questionnaire/app/app_enums.dart';
-// import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+// import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 // class DynamicForm extends StatefulWidget {
 //   final formName;
 //   final List<FormItem> formItems;
@@ -401,7 +401,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/domain/model/client_model.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/presentation/resources/color_manager.dart';
 import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
@@ -412,7 +412,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:questionnaire/app/app_enums.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:sembast/sembast.dart';
 import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
@@ -433,7 +433,7 @@ import '../../build_questionnaire_form/widgets/attachment_widget.dart';
 class QuestionairesInfoView extends StatefulWidget {
   final String formName;
   final ClientItemModel? customerName;
-   List<FormItem> formItems;
+   List<QuestionairesItem> formItems;
   final bool validLocation;
   final bool showSurveyId;
   final String surveyId;
@@ -460,7 +460,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 
   double? lat;
   double? long;
-  late List<FormItem> formItemsLocal;
+  late List<QuestionairesItem> formItemsLocal;
 
   @override
   void didChangeDependencies() {
@@ -803,7 +803,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
     ClientItemModel(id: 2, name: 'عميل رقم ٢'),
     ClientItemModel(id: 3, name: 'عميل رقم ٣'),
   ];
-  Widget renderInputField(FormItem formItem) {
+  Widget renderInputField(QuestionairesItem formItem) {
     switch (formItem.questionType) {
       case FormItemType.ShortText:
         return Column(

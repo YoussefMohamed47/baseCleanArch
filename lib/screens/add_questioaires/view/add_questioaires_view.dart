@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:questionnaire/app/di.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/presentation/resources/color_manager.dart';
 import 'package:questionnaire/screens/Questionaires/viewmodel/questionaires_viewmodel.dart';
@@ -73,7 +73,7 @@ if(allForms.length==1){
     print("gjhkjlhj ${allQuestionaires.length}");
     Navigator.pop(context);
 
-    List<FormItem> temp2 = [];
+    List<QuestionairesItem> temp2 = [];
     for(int i =0 ; i < questionairesTemp.questions.length ; i ++){
 
 
@@ -90,7 +90,7 @@ if(allForms.length==1){
               );
         }
       }
-      temp2.add(FormItem(question:questionairesTemp.questions[i].question ?? '',
+      temp2.add(QuestionairesItem(question:questionairesTemp.questions[i].question ?? '',
           questionType: questionairesTemp.questions[i].questionType ?? FormItemType.ShortText,
           isRequired:  questionairesTemp.questions[i].isRequired,
           options:options,
@@ -307,7 +307,7 @@ if(allForms.length==1){
                                             print("gjhkjlhj ${allQuestionaires.length}");
                                             Navigator.pop(context);
 
-                                            List<FormItem> temp2 = [];
+                                            List<QuestionairesItem> temp2 = [];
                                             for(int i =0 ; i < questionairesTemp.questions.length ; i ++){
                                               List<OptionQuestionnaireModel> options = [];
                                               for(int o =0 ; o < questionairesTemp.questions[i].options.length ; o ++){
@@ -321,7 +321,7 @@ if(allForms.length==1){
                                                      );
                                                 }
                                               }
-                                              temp2.add(FormItem(question:questionairesTemp.questions[i].question ?? '',
+                                              temp2.add(QuestionairesItem(question:questionairesTemp.questions[i].question ?? '',
                                                   questionType: questionairesTemp.questions[i].questionType ?? FormItemType.ShortText,
                                                   isRequired:  questionairesTemp.questions[i].isRequired,
                                                   options:options,

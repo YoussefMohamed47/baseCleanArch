@@ -1,13 +1,14 @@
 import 'package:questionnaire/app/app_enums.dart';
 
-class FormItem {
+class QuestionairesItem {
   final String question;
   final FormItemType questionType;
    List<OptionQuestionnaireModel>? options;
   final bool isRequired;
   final bool isHide;
 
-  FormItem({
+
+  QuestionairesItem({
     required this.question,
     required this.questionType,
     this.options,

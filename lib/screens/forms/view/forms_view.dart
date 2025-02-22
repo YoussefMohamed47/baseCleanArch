@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:questionnaire/app/app_shared.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
 import 'package:questionnaire/screens/forms/viewmodel/forms_viewmodel.dart';
@@ -104,7 +104,7 @@ class _FormsScreenState extends State<FormsScreen> {
                     return GestureDetector(
                       onTap: () {
                         if(widget.isQuestionnaires){
-                          List<FormItem> temp = [];
+                          List<QuestionairesItem> temp = [];
                           for(int i =0 ; i < allForms[index].questions.length ; i ++){
                             List<OptionQuestionnaireModel> options = [];
                             for(int o =0 ; o < allForms[index].questions[i].options.length ; o ++){
@@ -116,7 +116,7 @@ class _FormsScreenState extends State<FormsScreen> {
                                    );
                               }
                             }
-                            temp.add(FormItem(question:allForms[index].questions[i].question ?? '',
+                            temp.add(QuestionairesItem(question:allForms[index].questions[i].question ?? '',
                                 questionType: allForms[index].questions[i].questionType ?? FormItemType.ShortText,
                                 isRequired:  allForms[index].questions[i].isRequired,
                                 options:options,

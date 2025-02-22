@@ -1,6 +1,6 @@
 // import 'package:flutter/material.dart';
 // import 'package:questionnaire/app/app_enums.dart';
-// import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+// import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 // class DynamicForm extends StatefulWidget {
 //   final formName;
 //   final List<FormItem> formItems;
@@ -400,7 +400,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:questionnaire/app/app_enums.dart';
-import 'package:questionnaire/domain/model/make_form_template/form_item_model.dart';
+import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:sembast/sembast.dart';
 import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
@@ -419,7 +419,7 @@ import 'package:geolocator/geolocator.dart';
 
 class DynamicForm extends StatefulWidget {
   final String formName;
-  final List<FormItem> formItems;
+  final List<QuestionairesItem> formItems;
    bool? validLocation;
 
   DynamicForm({required this.formName, required this.formItems,this.validLocation =  false});
@@ -484,7 +484,7 @@ class _DynamicFormState extends State<DynamicForm> {
   }
   @override
   Widget build(BuildContext context) {
-    final FormItem currentFormItem = widget.formItems[_currentQuestionIndex];
+    final QuestionairesItem currentFormItem = widget.formItems[_currentQuestionIndex];
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.formName),
@@ -543,7 +543,7 @@ class _DynamicFormState extends State<DynamicForm> {
     );
   }
 
-  Widget renderInputField(FormItem formItem) {
+  Widget renderInputField(QuestionairesItem formItem) {
     switch (formItem.questionType) {
       case FormItemType.ShortText:
         return Column(
