@@ -429,17 +429,21 @@ import 'package:shared_module/Widget/toaster.widget.dart';
 
 import 'package:geolocator/geolocator.dart';
 
+import '../../../domain/model/from_model.dart';
 import '../../build_questionnaire_form/widgets/attachment_widget.dart';
 class QuestionairesInfoView extends StatefulWidget {
   final String formName;
-  final ClientItemModel? customerName;
-   List<QuestionairesItem> formItems;
+  // final ClientItemModel? customerName;
+  //  List<QuestionairesItem> formItems;
+    List<Question> formItems;
   final bool validLocation;
   final bool showSurveyId;
   final String surveyId;
   final DateTime questionnaireTime;
 
-  QuestionairesInfoView({required this.formName, required this.customerName, required this.formItems,required this.validLocation,
+  QuestionairesInfoView({required this.formName,
+  //  required this.customerName,
+    required this.formItems,required this.validLocation,
 
   required this.surveyId,
   required this.showSurveyId,
@@ -460,7 +464,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 
   double? lat;
   double? long;
-  late List<QuestionairesItem> formItemsLocal;
+  late List<Question> formItemsLocal;
 
   @override
   void didChangeDependencies() {
@@ -530,22 +534,22 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    widget.customerName?.name == null ?
-                    const SizedBox():
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3)
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
-                        child: Text(
-                          "${SharedLocalization
-                              .getLocalization!().customerName} : ${widget.customerName?.name ?? ''}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
+                    // widget.customerName?.name == null ?
+                    // const SizedBox():
+                    // Container(
+                    //   width: double.infinity,
+                    //   decoration: BoxDecoration(
+                    //       color: Colors.grey.withOpacity(0.3)
+                    //   ),
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                    //     child: Text(
+                    //       "${SharedLocalization
+                    //           .getLocalization!().customerName} : ${widget.customerName?.name ?? ''}",
+                    //       style: const TextStyle(fontWeight: FontWeight.bold),
+                    //     ),
+                    //   ),
+                    // ),
 
                     // SizedBox(height: 22,),
 
@@ -636,7 +640,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                currentFormItem.question,
+                                currentFormItem.question ?? '',
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                               SizedBox(
@@ -803,7 +807,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
     ClientItemModel(id: 2, name: 'عميل رقم ٢'),
     ClientItemModel(id: 3, name: 'عميل رقم ٣'),
   ];
-  Widget renderInputField(QuestionairesItem formItem) {
+  Widget renderInputField(Question formItem) {
     switch (formItem.questionType) {
       case FormItemType.ShortText:
         return Column(
@@ -840,7 +844,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 }
                 return null;
               },
-              onSaved: (value) => _formData[formItem.question] = value,
+              onSaved: (value) => _formData[formItem.question??''] = value,
             ),
           ],
         );
@@ -897,7 +901,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         formItem.options ??= [];
         List<String> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
-            .map((option) => option.option) // Extract the option string
+            .map((option) => option.option??'') // Extract the option string
             .toList();
         dropdownItems.addAll(
           options
@@ -949,7 +953,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         formItem.options ??= [];
         List<String> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
-            .map((option) => option.option) // Extract the option string
+            .map((option) => option.option??'') // Extract the option string
             .toList();
 
         List<String> validOptions = options

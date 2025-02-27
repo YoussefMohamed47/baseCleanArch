@@ -11,9 +11,11 @@ import 'package:uuid/uuid.dart';
 import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
+
+import '../../../domain/model/from_model.dart';
 List<FormModel> allQuestionaires = [];
 class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelInput, QuestionairesViewModelOutput {
-  QuestionairesViewModel(this._questionairesUseCase) : super();
+  QuestionairesViewModel() : super();
 
   final AppPreferences _appPreferences = instance<AppPreferences>();
   StreamController<QuestionairesUseCaseModel> _questionairesStreamController = StreamController<QuestionairesUseCaseModel>.broadcast();
@@ -24,12 +26,12 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
   String? selectedQuestionType ;
 
   bool isRequired=false;
-  FormModel dynamicFormModel = FormModel
+  LocalFormModel dynamicFormModel = LocalFormModel
 
     (
     id:    const Uuid().v1(),
       formName: "form 1",questions: []);
-  final MakeFormTemplateUseCase _questionairesUseCase;
+  // final MakeFormTemplateUseCase _questionairesUseCase;
 
   // output
   @override

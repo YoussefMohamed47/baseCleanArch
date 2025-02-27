@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/app/app_shared.dart';
 import 'package:questionnaire/app/di.dart';
@@ -21,12 +18,11 @@ import 'package:shared_module/theme/app-input-decoration.theme.dart';
 import 'package:shared_module/theme/app.theme.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../domain/model/client_model.dart' ;
-
+import '../../../domain/model/from_model.dart';
 
 
 class BuildFormsScreens extends StatefulWidget {
-  FormModel form;
+  LocalFormModel form;
   bool isEdit;
   int? formIndex;
   bool? validLocation;
@@ -38,8 +34,7 @@ class BuildFormsScreens extends StatefulWidget {
 
 class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
-  final MakeFormTemplateViewModel _viewModel =
-  instance<MakeFormTemplateViewModel>();
+  final MakeFormTemplateViewModel _viewModel = instance<MakeFormTemplateViewModel>();
 
 
 
@@ -108,14 +103,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                               }
                             },
                             items: List.generate(
-                              _viewModel.questionTypeList.length,
+                              AppShared.questionTypeList.length,
                                   (index) => DropdownMenuItem(
                                 child: Text(
-                                  _viewModel.questionTypeList[index].name,
+                                  AppShared.questionTypeList[index].name,
                                   style: TextStyle(
                                       color: Colors.black, fontSize: 16),
                                 ),
-                                value: _viewModel.questionTypeList[index].questionType,
+                                value: AppShared.questionTypeList[index].questionType,
                               ),
                             )),
                       ),
@@ -167,13 +162,15 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
   addQuestionModel(FormItemType selectedQuestionType){
     TextEditingController questionController = TextEditingController();
-    List<QuestionOptionModel> options=[];
+    List<Option> options=[];
     final formkey = GlobalKey<FormState>();
 
-    options.add(QuestionOptionModel(
-      TextEditingController(),
-      isHide: false
-    ));
+    if(selectedQuestionType == FormItemType.SingleChoice || selectedQuestionType == FormItemType.MultiChoice){
+      options.add(Option(
+          optionController:TextEditingController(),
+          isHide: false
+      ));
+    }
     return showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.whiteColor,
@@ -355,8 +352,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
 
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                      elevation: MaterialStateProperty.all<double>(0),
+                                      backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                                      elevation: WidgetStateProperty.all<double>(0),
                                     ),
                                     child: Row(
                                         mainAxisAlignment: MainAxisAlignment.start,
@@ -491,7 +488,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                 ),
                                               ),
                                               onTap: () {
-                                                options.add(QuestionOptionModel(TextEditingController(), isHide: false));
+                                                options.add(Option(optionController:TextEditingController(), isHide: false));
                                                 setState(() {});
                                               },
                                             ),
@@ -508,14 +505,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     padding: EdgeInsets.all(3.0),
                                                     child: Icon(Icons.hide_source_sharp,
                                                         color:
-                                                        options[index].isHide ?
+                                                        (options[index].isHide ?? false) ?
                                                         ColorManager.primary:
                                                         ColorManager.grey, size: 16),
                                                   ),
                                                 ),
                                               ),
                                               onTap: () {
-                                                  options[index].isHide = !options[index].isHide;
+                                                  options[index].isHide = !(options[index].isHide ?? false);
                                                   setState(() {});
 
                                               },
@@ -574,9 +571,9 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                       onTap: (){
                         if(formkey.currentState?.validate() ?? false){
                           _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
-                          _viewModel.dynamicFormModel.questions.add(QuestionItemModel(
+                          _viewModel.dynamicFormModel.questions.add(Question(
                               question: questionController.text,
-                              questionType: _viewModel.selectedQuestionType,
+                              questionType: _viewModel.selectedQuestionType?.index,
                               options: options,
                               isRequired: _viewModel.isRequired,
                               // validators: []
@@ -620,12 +617,12 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
   }
 
 
-  editQuestionModel(FormItemType selectedQuestionType, QuestionItemModel question,int questionIndex){
+  editQuestionModel(FormItemType selectedQuestionType, Question question,int questionIndex){
     TextEditingController questionController = TextEditingController();
     questionController.text=question.question ?? '';
-    List<QuestionOptionModel> options=[];
+    List<Option>? options=[];
     options=question.options;
-    _viewModel.isRequired = question.isRequired;
+    _viewModel.isRequired = question.isRequired ?? false;
 
     final formkey = GlobalKey<FormState>();
 
@@ -791,8 +788,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
 
                                         style: ButtonStyle(
-                                          backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                          elevation: MaterialStateProperty.all<double>(0),
+                                          backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                                          elevation: WidgetStateProperty.all<double>(0),
                                         ),
                                         child: Row(
                                             mainAxisAlignment: MainAxisAlignment.start,
@@ -829,7 +826,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                 Container(
                                   color: Colors.white,
                                   child: ReorderableListView.builder(
-                                    itemCount: options.length,
+                                    itemCount: options?.length ?? 0,
                                     shrinkWrap: true,
                                     primary: false,
                                     onReorderStart: (int x){
@@ -840,14 +837,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                         if (newIndex > oldIndex) {
                                           newIndex -= 1;
                                         }
-                                        final item = options.removeAt(oldIndex);
-                                        options.insert(newIndex, item);
+                                        final item = options?.removeAt(oldIndex);
+                                        options?.insert(newIndex, item!);
                                       });
                                     },
                                     //  physics: const NeverScrollableScrollPhysics(),
                                     itemBuilder: (context,index){
                                       return Padding(
-                                        key: ValueKey(options[index]), // Unique Key for ReorderableListView
+                                        key: ValueKey(options?[index]), // Unique Key for ReorderableListView
                                         padding:  EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
                                         child: Row(
                                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -855,7 +852,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                           children: [
                                             Expanded(
                                               child: TextFormField(
-                                                  controller: options[index].optionController,
+                                                  controller: options?[index].optionController,
                                                   keyboardType: TextInputType.multiline,
                                                   maxLines: 6,
                                                   minLines: 1,
@@ -951,7 +948,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     ),
                                                   ),
                                                   onTap: () {
-                                                    options.add(QuestionOptionModel(TextEditingController(), isHide: false));
+                                                    options?.add(Option(optionController:TextEditingController(), isHide: false));
                                                     setState(() {});
                                                   },
                                                 ),
@@ -968,14 +965,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                         padding: EdgeInsets.all(3.0),
                                                         child: Icon(Icons.hide_source_sharp,
                                                             color:
-                                                            options[index].isHide ?
+                                                           ( options?[index].isHide ?? false) ?
                                                             ColorManager.primary:
                                                             ColorManager.grey, size: 16),
                                                       ),
                                                     ),
                                                   ),
                                                   onTap: () {
-                                                    options[index].isHide = !options[index].isHide;
+                                                    options?[index].isHide = !(options?[index].isHide ?? false);
                                                     setState(() {});
 
                                                   },
@@ -996,8 +993,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     ),
                                                   ),
                                                   onTap: () {
-                                                    if (options.length > 1) {
-                                                      options.removeAt(index);
+                                                    if ((options?.length ?? 0) > 1) {
+                                                      options?.removeAt(index);
                                                       setState(() {});
                                                     }
                                                   },
@@ -1032,9 +1029,9 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                       onTap: (){
                         if(formkey.currentState?.validate() ?? false){
                           _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
-                          _viewModel.dynamicFormModel.questions[questionIndex]= QuestionItemModel(
+                          _viewModel.dynamicFormModel.questions[questionIndex]= Question(
                               question: questionController.text,
-                              questionType: question.questionType,
+                              questionType: question.questionType ?? 0,
                               options: options,
                               isRequired: _viewModel.isRequired,
                              // validators: []
@@ -1084,7 +1081,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       print("widget.formwidget.form............. ${widget.form.validLocation}");
-      _viewModel.startViewModel( widget.form);
+      _viewModel.startViewModel( widget.form,widget.isEdit);
       if(!widget.isEdit){
         selectQuestionType();
       }
@@ -1211,7 +1208,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                               key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Unique Key for ReorderableListView
                               onTap: (){
                                         editQuestionModel(
-                                          _viewModel.dynamicFormModel.questions[index].questionType ?? FormItemType.ShortText,
+
+                                          AppShared.getFormItemTypeByIndex(_viewModel.dynamicFormModel.questions[index].questionType ?? 1),
                                           _viewModel.dynamicFormModel.questions[index],
                                           index,
                                         );
@@ -1251,14 +1249,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                             children: [
                                               IconButton(
                                                 icon: Icon(Icons.hide_source, color:
-                                                _viewModel.dynamicFormModel.questions[index].isHide?
+                                                (_viewModel.dynamicFormModel.questions[index].isHide??false)?
                                                 AppTheme.primaryColor:
                                                 Colors.grey),
                                                 onPressed: () {
                                                   setState(() {
                                                     _viewModel.dynamicFormModel.questions[index].isHide=
 
-                                                        !_viewModel.dynamicFormModel.questions[index].isHide;
+                                                        !(_viewModel.dynamicFormModel.questions[index].isHide ?? false);
                                                   });
                                                 },
                                               ),
@@ -1293,14 +1291,13 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            _viewModel.dynamicFormModel.questions[index].questionType.toString() .replaceAll('FormItemType.', ''),
-                                            style: TextStyle(
+                                            AppShared.questionTypeList[_viewModel.dynamicFormModel.questions[index].questionType??0].name,                                            style: TextStyle(
                                               fontSize: 14,
                                               color: Colors.deepPurple,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          if (_viewModel.dynamicFormModel.questions[index].isRequired)
+                                          if (_viewModel.dynamicFormModel.questions[index].isRequired ?? false)
                                             Text(
                                               "${SharedLocalization.getLocalization!().surveyIsRequired}",
                                               style: TextStyle(
@@ -1448,33 +1445,60 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
       bottomNavigationBar:Padding(
         padding: const EdgeInsets.only(left: 12.0,right:12.0,bottom: 12),
         child: ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             if(_formKey.currentState!.validate()){
 
               if(_viewModel.dynamicFormModel.questions.isNotEmpty){
                 print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
                 if(widget.isEdit){
 
-                  allForms[widget.formIndex ?? 0]=FormModel(
-                      id: const Uuid().v1(),
-                      customerName: _viewModel.selectedFormId,
+
+
+                  FormModel res = await _viewModel.updateForm(
+                      _viewModel.dynamicFormModel.id,
+                      FormModel(
                       formName: _viewModel.formName.text,
-                      validLocation: _viewModel.validLocation,
+                      validLocation:_viewModel.validLocation,
                       showSurveyId: _viewModel.showSurveyID,
-                      questions: _viewModel.dynamicFormModel.questions
+                      questionnaireTime:_viewModel.dynamicFormModel.questionnaireTime,
+                        isTemplate: true,
+                      isActive: true,
+                      questions: _viewModel.dynamicFormModel.questions,
+                      originalFormMasterId: _viewModel.dynamicFormModel.originalFormMasterId,
+                      isUsed: true
+                  ));
+
+                  allForms.items?[widget.formIndex ?? 0]=FormModel(
+                      id: res.id,
+                      formName: res.formName,
+                      validLocation: res.validLocation,
+                      showSurveyId: res.showSurveyId,
+                      questions: res.questions,
+                    questionnaireTime: res.questionnaireTime,
+                    originalFormMasterId: res.originalFormMasterId
 
                   );
                 }
                 else{
-                  allForms.add(FormModel(
-                      id: const Uuid().v1(),
-                      customerName: _viewModel.selectedFormId,
+                  FormModel res = await _viewModel.addForm(FormModel(
+                    formName: _viewModel.formName.text,
+                    validLocation:_viewModel.validLocation,
+                    showSurveyId: _viewModel.showSurveyID,
+                    questionnaireTime:DateTime.now(),
+                    isTemplate: true,
+                    isActive: true,
+                    questions: _viewModel.dynamicFormModel.questions,
+                    originalFormMasterId: const Uuid().v1(),
+                    isUsed: true
+                  ));
+                  allForms.items?.add(FormModel(
+                      id: res.id,
                       formName: _viewModel.formName.text,
                       validLocation: _viewModel.validLocation,
                       showSurveyId: _viewModel.showSurveyID,
                       questions: _viewModel.dynamicFormModel.questions));
                 }
-                Navigator.pop(context);
+               Navigator.pop(context);
               }else{
                 Toaster.error(
                     content: Text(SharedLocalization

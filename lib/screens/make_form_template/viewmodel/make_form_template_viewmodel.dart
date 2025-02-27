@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:questionnaire/app/app_enums.dart';
+import 'package:questionnaire/app/app_shared.dart';
 import 'package:questionnaire/domain/model/client_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/QuestionOptionModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart';
@@ -15,9 +16,12 @@ import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
+import '../../../domain/model/from_model.dart';
+import '../../../domain/repository/forms/forms_repo.dart';
+
 class MakeFormTemplateViewModel extends BaseViewModel
     with MakeFormTemplateViewModelInput, MakeFormTemplateViewModelOutput {
-  MakeFormTemplateViewModel(this._makeFormTemplateUseCase) : super();
+  MakeFormTemplateViewModel() : super();
 
   final AppPreferences _appPreferences = instance<AppPreferences>();
 
@@ -28,10 +32,12 @@ class MakeFormTemplateViewModel extends BaseViewModel
   final MakeFormTemplateUseCaseModel _model =
   MakeFormTemplateUseCaseModel();
 
+
+  FormRepository formRepo = FormRepository();
   FormItemType? selectedQuestionType ;
 //=FormItemType.ShortText
   bool isRequired=false;
-  FormModel dynamicFormModel = FormModel(  id:const Uuid().v1(),formName: "",questions: []);
+  LocalFormModel dynamicFormModel = LocalFormModel(  id:const Uuid().v1(),formName: "",questions: []);
   TextEditingController formName = TextEditingController();
   ClientItemModel? selectedFormId;
 
@@ -48,55 +54,8 @@ class MakeFormTemplateViewModel extends BaseViewModel
     postDataToView();
   }
 
-  List<QuestionTypeModel> questionTypeList = [
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ShortText] ?? 2,
-    "${SharedLocalization.getLocalization!().shortText}",
-        FormItemType.ShortText
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.LongText] ?? 1,
-        "${SharedLocalization.getLocalization!().longText}",
-        FormItemType.LongText
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.SingleChoice] ?? 3,
-    '${SharedLocalization.getLocalization!().singleChoice}',
-        FormItemType.SingleChoice
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.MultiChoice] ?? 4,
-    '${SharedLocalization.getLocalization!().multiChoice}',
-        FormItemType.MultiChoice
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Number] ?? 5,
-    '${SharedLocalization.getLocalization!().number}',
-        FormItemType.Number
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Float] ?? 6,
-    '${SharedLocalization.getLocalization!().float}',
-        FormItemType.Float
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Date] ?? 7,
-    '${SharedLocalization.getLocalization!().date} ',
-        FormItemType.Date
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Time] ?? 8,
-    '${SharedLocalization.getLocalization!().time}',
-        FormItemType.Time
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Attachment] ?? 9,
-    '${SharedLocalization.getLocalization!().attachment}',
-        FormItemType.Attachment
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
-    '${SharedLocalization.getLocalization!().location}',
-        FormItemType.Location
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 11,
-    '${SharedLocalization.getLocalization!().client}',
-        FormItemType.Client
-    ),
 
-
-  ];
-  final MakeFormTemplateUseCase _makeFormTemplateUseCase;
+  // final MakeFormTemplateUseCase _makeFormTemplateUseCase;
 
   // output
   @override
@@ -123,26 +82,54 @@ class MakeFormTemplateViewModel extends BaseViewModel
     ClientItemModel(id: 2, name: 'عميل رقم ٢'),
     ClientItemModel(id: 3, name: 'عميل رقم ٣'),
   ];
-  startViewModel(FormModel form) {
+  startViewModel(LocalFormModel form, bool isEdit) async {
 
     if (_makeFormTemplateStreamController.isClosed) {
       _makeFormTemplateStreamController =
       StreamController<MakeFormTemplateUseCaseModel>.broadcast();
     }
+    
     dynamicFormModel = form;
     print("dynamicFormModel.customerName ${dynamicFormModel.showSurveyId}");
     formName.text= dynamicFormModel.formName ?? '';
     validLocation = dynamicFormModel.validLocation ?? false;
     showSurveyID = dynamicFormModel.showSurveyId ?? false;
+    dynamicFormModel.originalFormMasterId = form.originalFormMasterId ;
+
+
+    if(isEdit){
+      FormModel res= await formRepo.getFormDetail(id: dynamicFormModel.id);
+      print("object:::::: ${res.questions?.length}");
+      //AppShared.convertQuestions(questionItems);
+      dynamicFormModel.questions = res.questions ?? [];
+      dynamicFormModel.questionnaireTime = res.questionnaireTime;
+      formName.text= res.formName ?? '';
+      validLocation = res.validLocation ?? false;
+      showSurveyID = res.showSurveyId ?? false;
+      dynamicFormModel.originalFormMasterId = res.originalFormMasterId ;
+
+    }
+
     //selectedFormId= allClients[0];//dynamicFormModel.customerName;
 
-    if(dynamicFormModel.customerName?.name != null){
-      selectedFormId = allClients.firstWhere(
-            (client) => client.id == dynamicFormModel.customerName?.id,);
-    }
+    // if(dynamicFormModel.customerName?.name != null){
+    //   selectedFormId = allClients.firstWhere(
+    //         (client) => client.id == dynamicFormModel.customerName?.id,);
+    // }
 
     //  await getTermsAndConditions();
     postDataToView();
+  }
+
+
+  Future<FormModel> addForm(FormModel input ) async {
+    return await  formRepo.addForm( input);
+  }
+
+  Future<FormModel> updateForm(String id , FormModel input ) async {
+    return await  formRepo.updateFormDetail(
+      id: id,input: input
+    );
   }
 
   postDataToView() {

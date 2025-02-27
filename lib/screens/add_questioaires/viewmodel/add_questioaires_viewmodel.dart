@@ -12,23 +12,28 @@ import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
+import '../../../domain/model/make_form_template/form_list.dart';
+import '../../../domain/repository/forms/forms_repo.dart';
+import '../../forms/viewmodel/forms_viewmodel.dart';
+
 class AddQuestionairesViewModel extends BaseViewModel with AddQuestionairesViewModelInput, AddQuestionairesViewModelOutput {
-  AddQuestionairesViewModel(this._questionairesUseCase) : super();
+  AddQuestionairesViewModel() : super();
 
   final AppPreferences _appPreferences = instance<AppPreferences>();
   StreamController<AddQuestionairesUseCaseModel> _addQuestionairesStreamController = StreamController<AddQuestionairesUseCaseModel>.broadcast();
   final AddQuestionairesUseCaseModel _model =
   AddQuestionairesUseCaseModel();
 
-  int? selectedQuestionType ;
+  // int? selectedQuestionType ;
+  String? selectedQuestionType ;
 
   bool isRequired=false;
-  FormModel dynamicFormModel = FormModel
+  LocalFormModel dynamicFormModel = LocalFormModel
 
     (
       id:    const Uuid().v1(),
       formName: "form 1",questions: []);
-  final MakeFormTemplateUseCase _questionairesUseCase;
+  // final MakeFormTemplateUseCase _questionairesUseCase;
 
   // output
   @override
@@ -44,7 +49,8 @@ class AddQuestionairesViewModel extends BaseViewModel with AddQuestionairesViewM
   Stream<AddQuestionairesUseCaseModel> get outputAddQuestionairesContent =>
       _addQuestionairesStreamController.stream.map((home) => home);
 
-  // input
+  FormRepository formRepo = FormRepository();
+  bool isLoading =false;
   @override
   Future start() async {
     if (_addQuestionairesStreamController.isClosed) {
@@ -52,6 +58,14 @@ class AddQuestionairesViewModel extends BaseViewModel with AddQuestionairesViewM
       StreamController<AddQuestionairesUseCaseModel>.broadcast();
     }
     //  await getTermsAndConditions();
+    isLoading = true;
+    postDataToView();
+    //  await getTermsAndConditions();
+    allForms=FormListModel();
+    allForms = await formRepo.getForm(isTemplate: true);
+    await Future.delayed(const Duration(milliseconds: 250));
+    isLoading = false;
+    postDataToView();
     postDataToView();
   }
 
@@ -72,7 +86,7 @@ mixin AddQuestionairesViewModelOutput {
 }
 
 class AddQuestionairesUseCaseModel {
-  List<FormModel> allQuestionaires = [];
+  List<LocalFormModel> allQuestionaires = [];
   AddQuestionairesUseCaseModel();
 
 }

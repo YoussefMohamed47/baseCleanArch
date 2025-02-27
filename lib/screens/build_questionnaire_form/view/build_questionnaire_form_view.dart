@@ -400,6 +400,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:questionnaire/app/app_enums.dart';
+import 'package:questionnaire/app/app_shared.dart';
 import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:sembast/sembast.dart';
 import 'package:shared_module/constants/app.consts.dart';
@@ -407,6 +408,7 @@ import 'package:shared_module/localization/shared.localization.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../../domain/model/client_model.dart';
+import '../../../domain/model/from_model.dart';
 import '../widgets/attachment_widget.dart';
 import '../widgets/location_widget.dart';
 
@@ -419,7 +421,7 @@ import 'package:geolocator/geolocator.dart';
 
 class DynamicForm extends StatefulWidget {
   final String formName;
-  final List<QuestionairesItem> formItems;
+  final List<Question> formItems;
    bool? validLocation;
 
   DynamicForm({required this.formName, required this.formItems,this.validLocation =  false});
@@ -484,7 +486,7 @@ class _DynamicFormState extends State<DynamicForm> {
   }
   @override
   Widget build(BuildContext context) {
-    final QuestionairesItem currentFormItem = widget.formItems[_currentQuestionIndex];
+    final Question currentFormItem = widget.formItems[_currentQuestionIndex];
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.formName),
@@ -543,8 +545,8 @@ class _DynamicFormState extends State<DynamicForm> {
     );
   }
 
-  Widget renderInputField(QuestionairesItem formItem) {
-    switch (formItem.questionType) {
+  Widget renderInputField(Question formItem) {
+    switch (AppShared.questionTypeList[formItem.questionType??0].questionType) {
       case FormItemType.ShortText:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,7 +628,7 @@ class _DynamicFormState extends State<DynamicForm> {
         formItem.options ??= [];
         List<String> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
-            .map((option) => option.option) // Extract the option string
+            .map((option) => option.option ?? '') // Extract the option string
             .toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -679,7 +681,7 @@ class _DynamicFormState extends State<DynamicForm> {
         formItem.options ??= [];
         List<String> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
-            .map((option) => option.option) // Extract the option string
+            .map((option) => option.option ?? '') // Extract the option string
             .toList();
         List<String> validOptions = options
             .where((option) {

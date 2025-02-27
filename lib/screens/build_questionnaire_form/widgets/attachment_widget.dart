@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
+import '../../../domain/model/from_model.dart';
 import '../../../domain/model/make_form_template/questionaires_item.dart';
 
 import 'package:shared_module/localization/shared.localization.dart';
@@ -14,7 +15,7 @@ import 'package:shared_module/localization/shared.localization.dart';
 
 
 class AttachmentWidget extends StatefulWidget {
-  final QuestionairesItem formItem;
+  final Question formItem;
 
   AttachmentWidget({required this.formItem});
 

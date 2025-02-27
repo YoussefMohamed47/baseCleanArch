@@ -6,6 +6,7 @@ import 'package:questionnaire/domain/model/make_form_template/QuestionOptionMode
 import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/form_model.dart';
 import 'package:questionnaire/domain/usecase/make_form_template_usecase.dart';
+import 'package:shared_module/app_services/attachment.app_service.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../app/app_prefs.dart';
@@ -13,7 +14,7 @@ import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
 class QuestionairesInfoViewModel extends BaseViewModel with QuestionairesInfoViewModelInput, QuestionairesInfoViewModelOutput {
-  QuestionairesInfoViewModel(this._questionairesUseCase) : super();
+  QuestionairesInfoViewModel() : super();
 
   final AppPreferences _appPreferences = instance<AppPreferences>();
   StreamController<QuestionairesInfoUseCaseModel> _questionairesInfoStreamController = StreamController<QuestionairesInfoUseCaseModel>.broadcast();
@@ -23,12 +24,14 @@ class QuestionairesInfoViewModel extends BaseViewModel with QuestionairesInfoVie
   int? selectedQuestionType ;
 
   bool isRequired=false;
-  FormModel dynamicFormModel = FormModel
+  AttachmentAppService attachmentAppService = AttachmentAppService();
+
+  LocalFormModel dynamicFormModel = LocalFormModel
 
     (
       id:   const Uuid().v1(),
       formName: "form 1",questions: []);
-  final MakeFormTemplateUseCase _questionairesUseCase;
+  // final MakeFormTemplateUseCase _questionairesUseCase;
 
   // output
   @override

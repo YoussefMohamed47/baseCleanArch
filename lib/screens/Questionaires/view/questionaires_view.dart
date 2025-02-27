@@ -21,6 +21,7 @@ import 'package:shared_module/theme/shared.icons.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../app/app_enums.dart';
+import '../../../app/app_shared.dart';
 import '../../../domain/model/client_model.dart';
 import '../../../domain/model/make_form_template/form_model.dart';
 import '../../../presentation/resources/color_manager.dart';
@@ -44,7 +45,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
   addQuestionaires(QuestionairesUseCaseModel? data){
     final formkey = GlobalKey<FormState>();
     TextEditingController customerNameController = TextEditingController();
-    FormModel temp =FormModel(id:const Uuid().v1(),questions: [],formName: "",customerName: null);
+    LocalFormModel temp =LocalFormModel(id:const Uuid().v1(),questions: [],formName: "");
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -107,8 +108,8 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                             //     AppConsts.chatMessageMaxLength),
                                           ],
                                           onChanged: (value) {
-                                            temp.customerName =
-                                                ClientItemModel(id: 0, name: value);
+                                            // temp.customerName =
+                                            //     ClientItemModel(id: 0, name: value);
                                           },
                                           onTap: () {
 
@@ -206,23 +207,23 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                           ),
                                         ),
                                         onChanged: (value) {
-                                          if (_viewModel.selectedQuestionType != value) {
-                                            _viewModel.selectedQuestionType = value;
-                                            FormModel selectedForm = allForms.where((element) => element.id==value).first;
-                                            temp.id =const Uuid().v1();
-                                            temp.formName=selectedForm.formName;
-                                            temp.questions=selectedForm.questions;
-                                          }
+                                          // if (_viewModel.selectedQuestionType != value) {
+                                          //   _viewModel.selectedQuestionType = value;
+                                          //   LocalFormModel selectedForm = allForms.where((element) => element.id==value).first;
+                                          //   temp.id =const Uuid().v1();
+                                          //   temp.formName=selectedForm.formName;
+                                          //   temp.questions=selectedForm.questions;
+                                          // }
                                         },
                                         items: List.generate(
-                                          allForms.length,
+                                          allForms.items?.length ?? 0,
                                               (index) => DropdownMenuItem(
+                                            value: allForms.items?[index].id,
                                             child: Text(
-                                              allForms[index].formName ??'',
-                                              style: TextStyle(
+                                              allForms.items?[index].formName ??'',
+                                              style: const TextStyle(
                                                   color: Colors.black, fontSize: 16),
                                             ),
-                                            value: allForms[index].id,
                                           ),
                                         )),
                                   ),
@@ -241,7 +242,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                           onTap: (){
                            // addQuestionModel( _viewModel.selectedQuestionType );
                             if(formkey.currentState?.validate() ?? false){
-                              allQuestionaires.add(temp);
+                            //  allQuestionaires.add(temp);
                               Navigator.pop(context);
                             }
 
@@ -281,30 +282,32 @@ class _QuestionairesViewState extends State<QuestionairesView> {
       _viewModel.postDataToView();
     });
   }
-  List<FormModel> localQuestionnaires=[];
-  ValueNotifier<List<FormModel>> filteredQuestionnaires = ValueNotifier([]);
+  List<LocalFormModel> localQuestionnaires=[];
+  ValueNotifier<List<LocalFormModel>> filteredQuestionnaires = ValueNotifier([]);
 
   @override
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _viewModel.start();
-      localQuestionnaires=allQuestionaires;
-      filteredQuestionnaires.value=allQuestionaires;
+      // localQuestionnaires=allQuestionaires;
+      // filteredQuestionnaires.value=allQuestionaires;
     });
   }
 
-  List<FormModel> searchForms(String searchKey) {
+  List<LocalFormModel> searchForms(String searchKey) {
     final lowerKey = searchKey.toLowerCase();
     return localQuestionnaires.where((form) {
       final matchesId = form.id.toString().contains(searchKey);
       final matchesFormName = form.formName?.toLowerCase().contains(lowerKey) ?? false;
-      final matchesClientName = form.customerName?.name.toLowerCase().contains(lowerKey) ?? false;
+      // final matchesClientName = form.customerName?.name.toLowerCase().contains(lowerKey) ?? false;
 
       // Check if the searchKey matches the index
       final matchesIndex = (localQuestionnaires.indexOf(form)+1).toString() == searchKey;
 
-      return matchesId || matchesFormName || matchesClientName || matchesIndex;
+      return matchesId || matchesFormName
+          //|| matchesClientName
+          || matchesIndex;
     }).toList();
   }
 
@@ -327,7 +330,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
         child:
 
 
-        ValueListenableBuilder<List<FormModel>>(
+        ValueListenableBuilder<List<LocalFormModel>>(
           valueListenable: filteredQuestionnaires,
           builder: (context, forms, child) {
             return Column(
@@ -354,27 +357,28 @@ class _QuestionairesViewState extends State<QuestionairesView> {
 
 
                           if(widget.isQuestionnaires){
-                            List<QuestionairesItem> temp = [];
-                            for(int i =0 ; i < forms[index].questions.length ; i ++){
-                              List<OptionQuestionnaireModel> options = [];
-                              for(int o =0 ; o < forms[index].questions[i].options.length ; o ++){
-                                for(int j =0 ; j < forms[index].questions[i].options[o].optionController.text.split(",").length ; j ++){
-                                  options.add(
-
-                                      OptionQuestionnaireModel(
-                                        option: forms[index].questions[i].options[o].optionController.text.split(",")[j],
-                                        isHide: forms[index].questions[i].options[o].isHide
-                                      )
-                                      );
-                                }
-                              }
-                              temp.add(QuestionairesItem(question:forms[index].questions[i].question ?? '',
-                                  questionType: forms[index].questions[i].questionType ?? FormItemType.ShortText,
-                                  isRequired:  forms[index].questions[i].isRequired,
-                                  options:options,
-                                isHide:  forms[index].questions[i].isHide
-                              ));
-                            }
+                            // List<QuestionairesItem> temp = [];
+                            // for(int i =0 ; i < forms[index].questions.length ; i ++){
+                            //   List<OptionQuestionnaireModel> options = [];
+                            //   for(int o =0 ; o < (forms[index].questions[i].options?.length ?? 0); o ++){
+                            //     for(int j =0 ; j < forms[index].questions[i].options![o].optionController!.text.split(",").length ; j ++){
+                            //       options.add(
+                            //
+                            //           OptionQuestionnaireModel(
+                            //             option: forms[index].questions[i].options![o].optionController!.text.split(",")[j],
+                            //             isHide: forms[index].questions[i].options![o].isHide ?? false
+                            //           )
+                            //           );
+                            //     }
+                            //   }
+                            //   temp.add(QuestionairesItem(question:forms[index].questions[i].question ?? '',
+                            //       questionType:
+                            //       AppShared.getFormItemTypeByIndex(forms[index].questions[i].questionType ?? 1),
+                            //       isRequired:  forms[index].questions[i].isRequired ?? false,
+                            //       options:options,
+                            //     isHide:  forms[index].questions[i].isHide ?? false
+                            //   ));
+                            // }
                             // Navigator.push(
                             //     context,
                             //     BasePageRoute(
@@ -388,8 +392,8 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                 BasePageRoute(
                                     builder: (context) => QuestionairesInfoView(
                                       formName: forms[index].formName ?? '',
-                                      formItems:  temp,
-                                      customerName:forms[index].customerName,
+                                      formItems:  forms[index].questions,
+                                      // customerName:forms[index].customerName,
                                       validLocation: forms[index].validLocation ?? false,
                                       surveyId: forms[index].id,
                                       showSurveyId: forms[index].showSurveyId ?? false,

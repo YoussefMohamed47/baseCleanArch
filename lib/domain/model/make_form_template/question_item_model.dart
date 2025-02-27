@@ -2,11 +2,13 @@ import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/domain/model/make_form_template/QuestionOptionModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamic_form_validator.dart';
 
+import '../from_model.dart';
+
 class QuestionItemModel {
   String? question;
   FormItemType? questionType;
 
-  List<QuestionOptionModel> options;
+  List<Option> options;
   bool isRequired;
 
   bool isHide;

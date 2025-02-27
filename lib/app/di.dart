@@ -49,7 +49,7 @@ Future<void> initServeyAppModule() async {
       () => AppCategoriesServiceClient(dio));
 
 
-  instance.registerFactory<MakeFormTemplateUseCase>(() => MakeFormTemplateUseCase(instance()));
+  // instance.registerFactory<MakeFormTemplateUseCase>(() => MakeFormTemplateUseCase(instance()));
 
 
   // instance.registerLazySingleton<CategoriesRemoteDataSourceImpl>(() =>
@@ -74,19 +74,19 @@ Future<void> initServeyAppModule() async {
   instance.registerLazySingleton<LocalDataSource>(() => LocalDataSourceImpl());
 
   instance
-      .registerFactory<MakeFormTemplateViewModel>(() => MakeFormTemplateViewModel(instance()));
+      .registerFactory<MakeFormTemplateViewModel>(() => MakeFormTemplateViewModel());
 
   instance
-      .registerFactory<FormsViewModel>(() => FormsViewModel(instance()));
+      .registerFactory<FormsViewModel>(() => FormsViewModel());
 
   instance
-      .registerFactory<QuestionairesViewModel>(() => QuestionairesViewModel(instance()));
+      .registerFactory<QuestionairesViewModel>(() => QuestionairesViewModel());
 
   instance
-      .registerFactory<QuestionairesInfoViewModel>(() => QuestionairesInfoViewModel(instance()));
+      .registerFactory<QuestionairesInfoViewModel>(() => QuestionairesInfoViewModel());
 
   instance
-      .registerFactory<AddQuestionairesViewModel>(() => AddQuestionairesViewModel(instance()));
+      .registerFactory<AddQuestionairesViewModel>(() => AddQuestionairesViewModel());
   // repository
 
   // instance.registerLazySingleton<AuthRepository>(
