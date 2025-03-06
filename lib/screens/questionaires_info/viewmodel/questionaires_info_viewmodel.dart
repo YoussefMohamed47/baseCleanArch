@@ -13,6 +13,9 @@ import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
+import '../../../domain/model/from_model.dart';
+import '../../../domain/repository/forms/forms_repo.dart';
+
 class QuestionairesInfoViewModel extends BaseViewModel with QuestionairesInfoViewModelInput, QuestionairesInfoViewModelOutput {
   QuestionairesInfoViewModel() : super();
 
@@ -47,13 +50,26 @@ class QuestionairesInfoViewModel extends BaseViewModel with QuestionairesInfoVie
   Stream<QuestionairesInfoUseCaseModel> get outputQuestionairesInfoContent =>
       _questionairesInfoStreamController.stream.map((home) => home);
 
-  // input
+  FormRepository formRepo = FormRepository();
+
+
+  FormModel surveyData =FormModel();
+
+
+  Future<FormModel> submitSurvey(FormModel input ) async {
+    return await  formRepo.updateFormDetail(id: input.id ?? '' ,input:  input);
+  }
+  Future<FormModel> getQuestionaireQuestion({required String surveyId}) async {
+     surveyData= await formRepo.getFormDetail(id: surveyId);
+     return surveyData;
+  }
   @override
   Future start() async {
     if (_questionairesInfoStreamController.isClosed) {
       _questionairesInfoStreamController =
       StreamController<QuestionairesInfoUseCaseModel>.broadcast();
     }
+    print("get questions ......");
     //  await getTermsAndConditions();
     postDataToView();
   }

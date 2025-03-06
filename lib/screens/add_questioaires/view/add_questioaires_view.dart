@@ -39,7 +39,9 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      _viewModel.start();
+       _viewModel.start().then((onValue){
+         setState(() {});
+       });
 
 
       print("allForms.lengthallForms.length ${allForms.items?.length}");
@@ -283,8 +285,9 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
 
                                           if(formkey.currentState?.validate() ?? false){
                                             FormModel questionaireQuestions=   await _viewModel.formRepo.getFormDetail(id: questionairesTemp.id ?? '');
+                                            print("questionaireQuestions.originalFormMasterId ${questionaireQuestions.originalFormMasterId}");
                                             FormModel questionaire=   FormModel(
-                                                id: questionaireQuestions.id,
+                                                id: null,
                                                 questions: questionaireQuestions.questions,
                                                 formName: questionaireQuestions.formName,
                                                 showSurveyId: questionaireQuestions.showSurveyId,
@@ -292,12 +295,13 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                                                 questionnaireTime: questionaireQuestions.questionnaireTime,
                                                 isUsed: questionaireQuestions.isUsed,
                                                 isActive: questionaireQuestions.isActive,
-                                                isTemplate: false
+                                                isTemplate: false,
+                                                originalFormMasterId: questionaireQuestions.originalFormMasterId
 
                                             );
-                                            allQuestionaires.add(questionaire);
                                             print("gjhkjlhj ${allQuestionaires.length}");
-                                            await _viewModel.formRepo.addForm(questionaire);
+                                            FormModel res = await _viewModel.formRepo.addForm(questionaire);
+                                            allQuestionaires.add(res);
                                             Navigator.pop(context);
 
                                             // List<QuestionairesItem> temp2 = [];
@@ -333,13 +337,12 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                                                 context,
                                                 BasePageRoute(
                                                     builder: (context) => QuestionairesInfoView(
-                                                      formName: questionairesTemp.formName ?? '',
-                                                      formItems:  questionaire.questions ?? [],
-                                                      validLocation: questionairesTemp.validLocation ?? false,
-                                                      surveyId: questionaire.id ?? '',
-                                                      showSurveyId: questionairesTemp.showSurveyId ?? false,
-                                                      questionnaireTime: questionairesTemp.questionnaireTime ?? DateTime.now() ,
-
+                                                      formName: res.formName ?? '',
+                                                      formItems:  res.questions ?? [],
+                                                      validLocation: res.validLocation ?? false,
+                                                      surveyId: res.id ?? '',
+                                                      showSurveyId: res.showSurveyId ?? false,
+                                                      questionnaireTime: res.questionnaireTime ?? DateTime.now() ,
                                                     )));
 
 

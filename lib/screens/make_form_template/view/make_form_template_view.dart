@@ -168,9 +168,11 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
     if(selectedQuestionType == FormItemType.SingleChoice || selectedQuestionType == FormItemType.MultiChoice){
       options.add(Option(
           optionController:TextEditingController(),
-          isHide: false
+          isHide: false,
+        option: '',
       ));
     }
+
     return showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.whiteColor,
@@ -186,79 +188,79 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
         print("selectedQuestionType ======= $selectedQuestionType");
         return FractionallySizedBox(
           heightFactor: 0.8,
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust for the keyboard
-            ),
-            child: StatefulBuilder(
-              builder: (BuildContext context, setState) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Container(
-                      color: Colors.white,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            SizedBox(height: 22,),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('${SharedLocalization.getLocalization!().surveyQuestionType}',style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18,
+          child: Form(
+            key: formkey,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust for the keyboard
+              ),
+              child: StatefulBuilder(
+                builder: (BuildContext context, setState) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              SizedBox(height: 22,),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('${SharedLocalization.getLocalization!().surveyQuestionType}',style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 18,
 
-                                    ),),
+                                      ),),
 
-                                    Text('   ${selectedQuestionType.index==1?
+                                      Text('   ${selectedQuestionType.index==1?
 
-                                    SharedLocalization.getLocalization!().shortText:
-                                    selectedQuestionType.index==0?
-                                    SharedLocalization.getLocalization!().longText:
-                                    selectedQuestionType.index==2?
-                                    SharedLocalization.getLocalization!().singleChoice:
+                                      SharedLocalization.getLocalization!().shortText:
+                                      selectedQuestionType.index==0?
+                                      SharedLocalization.getLocalization!().longText:
+                                      selectedQuestionType.index==2?
+                                      SharedLocalization.getLocalization!().singleChoice:
 
-                                    selectedQuestionType.index==3?
-                                    SharedLocalization.getLocalization!().multiChoice:
+                                      selectedQuestionType.index==3?
+                                      SharedLocalization.getLocalization!().multiChoice:
 
-                                    selectedQuestionType.index==4?
-                                    SharedLocalization.getLocalization!().number:
+                                      selectedQuestionType.index==4?
+                                      SharedLocalization.getLocalization!().number:
 
-                                    selectedQuestionType.index==5?
-                                    SharedLocalization.getLocalization!().float:
+                                      selectedQuestionType.index==5?
+                                      SharedLocalization.getLocalization!().float:
 
-                                    selectedQuestionType.index==6?
-                                    SharedLocalization.getLocalization!().date:
-                                    selectedQuestionType.index==7?
-                                    SharedLocalization.getLocalization!().time:
-                                        ""
+                                      selectedQuestionType.index==6?
+                                      SharedLocalization.getLocalization!().date:
+                                      selectedQuestionType.index==7?
+                                      SharedLocalization.getLocalization!().time:
+                                          ""
 
-                                    }',style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
-                                    ),),
+                                      }',style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                      ),),
 
 
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(height: 12,),
-                            Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  //  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.withOpacity(0.6))
-                              ),
-                              padding: EdgeInsets.only(left: 8 ,right: 8 , top: 0),
-                              child: Form(
-                                key: formkey,
+                              SizedBox(height: 12,),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    //  borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey.withOpacity(0.6))
+                                ),
+                                padding: EdgeInsets.only(left: 8 ,right: 8 , top: 0),
                                 child: TextFormField(
                                     controller: questionController,
                                     keyboardType: TextInputType.multiline,
@@ -341,271 +343,280 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                           )),
                                     )),
                               ),
-                            ),
-                            SizedBox(height: 12,),
-                            Container(
-                              color: Colors.white,
-                                child: ElevatedButton(
+                              SizedBox(height: 12,),
+                              Container(
+                                color: Colors.white,
+                                  child: ElevatedButton(
 
 
-                                    onPressed: () => setState(() => _viewModel.isRequired = !_viewModel.isRequired),
+                                      onPressed: () => setState(() => _viewModel.isRequired = !_viewModel.isRequired),
 
 
-                                    style: ButtonStyle(
-                                      backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
-                                      elevation: WidgetStateProperty.all<double>(0),
-                                    ),
-                                    child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          SizedBox(
-                                              height: 24.0,
-                                              width: 24.0,
-                                              child: Checkbox(
-                                                  value: _viewModel.isRequired,
-                                                  activeColor: AppTheme.accentColor,
-                                                  onChanged: (value){
-                                                    setState(() => _viewModel.isRequired = value ?? false);
-                                                  }
-                                              )
-                                          ),
-                                          // You can play with the width to adjust your
-                                          // desired spacing
-                                          SizedBox(width: 10.0),
-                                          Text(SharedLocalization.getLocalization!().surveyIsRequired,
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-
-                                          ),
-                                          )
-                                        ]
-                                    )
-                                )
-                            ),
-
-                            selectedQuestionType == FormItemType.SingleChoice ||
-                            selectedQuestionType == FormItemType.MultiChoice ?
-                            Container(
-                              color: Colors.white,
-                              child: ReorderableListView.builder(
-                                itemCount: options.length,
-                                shrinkWrap: true,
-                                primary: false,
-                                onReorderStart: (int x){
-                                  FocusScope.of(context).unfocus();
-
-                                },
-                                onReorder: (oldIndex, newIndex) {
-                                  setState(() {
-                                    if (newIndex > oldIndex) {
-                                      newIndex -= 1;
-                                    }
-                                    final item = options.removeAt(oldIndex);
-                                    options.insert(newIndex, item);
-                                  });
-                                },
-                                itemBuilder: (context, index) {
-                                  return Padding(
-                                    key: ValueKey(options[index]), // Ensure unique keys
-                                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: options[index].optionController,
-                                            keyboardType: TextInputType.multiline,
-                                            maxLines: 6,
-                                            minLines: 1,
-                                            autofocus: false,
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 16,
-                                            ),
-                                            onChanged: (value) {},
-                                            onTap: () {},
-                                            decoration: InputDecoration(
-                                              errorStyle: TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                              errorMaxLines: 2,
-                                              hintText:
-                                              "${SharedLocalization.getLocalization!().surveyWriteOption} ${index + 1}",
-                                              hintStyle: TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 16,
-                                              ),
-                                              filled: true,
-                                              contentPadding: EdgeInsets.only(top: 4, left: 6, right: 6),
-                                              fillColor: Colors.white.withOpacity(0.2),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(4.0),
-                                                borderSide: BorderSide(
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                ),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(4.0),
-                                                borderSide: BorderSide(
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                ),
-                                              ),
-                                              focusedErrorBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(4.0),
-                                                borderSide: BorderSide(
-                                                  color: ColorManager.error,
-                                                ),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(4.0),
-                                                borderSide: BorderSide(
-                                                  color: ColorManager.error,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                      style: ButtonStyle(
+                                        backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                                        elevation: WidgetStateProperty.all<double>(0),
+                                      ),
+                                      child: Row(
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           children: [
-                                            SizedBox(width: 8,),
-                                            GestureDetector(
-                                              child: Padding(
-                                                padding: EdgeInsets.only(left: 8.0, right: 1),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: AppTheme.accentColor,
-                                                  ),
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(3.0),
-                                                    child: Icon(Icons.add, color: ColorManager.white, size: 16),
-                                                  ),
-                                                ),
-                                              ),
-                                              onTap: () {
-                                                options.add(Option(optionController:TextEditingController(), isHide: false));
-                                                setState(() {});
-                                              },
+                                            SizedBox(
+                                                height: 24.0,
+                                                width: 24.0,
+                                                child: Checkbox(
+                                                    value: _viewModel.isRequired,
+                                                    activeColor: AppTheme.accentColor,
+                                                    onChanged: (value){
+                                                      setState(() => _viewModel.isRequired = value ?? false);
+                                                    }
+                                                )
                                             ),
+                                            // You can play with the width to adjust your
+                                            // desired spacing
+                                            SizedBox(width: 10.0),
+                                            Text(SharedLocalization.getLocalization!().surveyIsRequired,
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16,
 
-                                            GestureDetector(
-                                              child: Padding(
-                                                padding: EdgeInsets.only(left: 8.0, right: 1),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                  //  color: AppTheme.errorColor,
-                                                  ),
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(3.0),
-                                                    child: Icon(Icons.hide_source_sharp,
-                                                        color:
-                                                        (options[index].isHide ?? false) ?
-                                                        ColorManager.primary:
-                                                        ColorManager.grey, size: 16),
-                                                  ),
-                                                ),
-                                              ),
-                                              onTap: () {
-                                                  options[index].isHide = !(options[index].isHide ?? false);
-                                                  setState(() {});
-
-                                              },
                                             ),
-
-                                            GestureDetector(
-                                              child: Padding(
-                                                padding: EdgeInsets.only(left: 8.0, right: 1),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: AppTheme.errorColor,
-                                                  ),
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(3.0),
-                                                    child: Icon(Icons.close, color: ColorManager.white, size: 16),
-                                                  ),
-                                                ),
-                                              ),
-                                              onTap: () {
-                                                if (options.length > 1) {
-                                                  options.removeAt(index);
-                                                  setState(() {});
-                                                }
-                                              },
-                                            ),
-
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.transparent,
-                                              ),
-                                              child: Icon(Icons.reorder, color: ColorManager.grey2, size: 32),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                                            )
+                                          ]
+                                      )
+                                  )
                               ),
-                            )
-                                :SizedBox()
+
+                              selectedQuestionType == FormItemType.SingleChoice ||
+                              selectedQuestionType == FormItemType.MultiChoice ?
+                              Container(
+                                color: Colors.white,
+                                child: ReorderableListView.builder(
+                                  itemCount: options.length,
+                                  shrinkWrap: true,
+                                  primary: false,
+                                  onReorderStart: (int x){
+                                    FocusScope.of(context).unfocus();
+
+                                  },
+                                  onReorder: (oldIndex, newIndex) {
+                                    setState(() {
+                                      if (newIndex > oldIndex) {
+                                        newIndex -= 1;
+                                      }
+                                      final item = options.removeAt(oldIndex);
+                                      options.insert(newIndex, item);
+                                    });
+                                  },
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      key: ValueKey(options[index]), // Ensure unique keys
+                                      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: options[index].optionController,
+                                              keyboardType: TextInputType.multiline,
+                                              maxLines: 6,
+                                              minLines: 1,
+                                              autofocus: false,
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16,
+                                              ),
+                                              onChanged: (value) {
+                                                options[index].option =options[index].optionController?.text;
+                                              },
+                                              onTap: () {},
+                                              validator: (val){
+                                                if(val?.isEmpty ?? false){
+                                                  return SharedLocalization.getLocalization!().surveyFiledRequired;
+                                                }
+                                                return null;
+                                              },
+                                              decoration: InputDecoration(
+                                                errorStyle: TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                                errorMaxLines: 2,
+                                                hintText:
+                                                "${SharedLocalization.getLocalization!().surveyWriteOption} ${index + 1}",
+                                                hintStyle: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 16,
+                                                ),
+                                                filled: true,
+                                                contentPadding: EdgeInsets.only(top: 4, left: 6, right: 6),
+                                                fillColor: Colors.white.withOpacity(0.2),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(4.0),
+                                                  borderSide: BorderSide(
+                                                    color: Colors.grey.withOpacity(0.3),
+                                                  ),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(4.0),
+                                                  borderSide: BorderSide(
+                                                    color: Colors.grey.withOpacity(0.3),
+                                                  ),
+                                                ),
+                                                focusedErrorBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(4.0),
+                                                  borderSide: BorderSide(
+                                                    color: ColorManager.error,
+                                                  ),
+                                                ),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(4.0),
+                                                  borderSide: BorderSide(
+                                                    color: ColorManager.error,
+                                                  ),
+                                                ),
+
+                                              ),
+                                            ),
+                                          ),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              SizedBox(width: 8,),
+                                              GestureDetector(
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: AppTheme.accentColor,
+                                                    ),
+                                                    child: Padding(
+                                                      padding: EdgeInsets.all(3.0),
+                                                      child: Icon(Icons.add, color: ColorManager.white, size: 16),
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  options.add(Option(optionController:TextEditingController(), isHide: false));
+                                                  setState(() {});
+                                                },
+                                              ),
+
+                                              GestureDetector(
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                    //  color: AppTheme.errorColor,
+                                                    ),
+                                                    child: Padding(
+                                                      padding: EdgeInsets.all(3.0),
+                                                      child: Icon(Icons.hide_source_sharp,
+                                                          color:
+                                                          (options[index].isHide ?? false) ?
+                                                          ColorManager.primary:
+                                                          ColorManager.grey, size: 16),
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                    options[index].isHide = !(options[index].isHide ?? false);
+                                                    setState(() {});
+
+                                                },
+                                              ),
+
+                                              GestureDetector(
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(left: 8.0, right: 1),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: AppTheme.errorColor,
+                                                    ),
+                                                    child: Padding(
+                                                      padding: EdgeInsets.all(3.0),
+                                                      child: Icon(Icons.close, color: ColorManager.white, size: 16),
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  if (options.length > 1) {
+                                                    options.removeAt(index);
+                                                    setState(() {});
+                                                  }
+                                                },
+                                              ),
+
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.transparent,
+                                                ),
+                                                child: Icon(Icons.reorder, color: ColorManager.grey2, size: 32),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                                  :SizedBox()
 
 
 
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  Container(
-                    color: AppTheme.whiteColor,
-                    child: GestureDetector(
-                      onTap: (){
-                        if(formkey.currentState?.validate() ?? false){
-                          _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
-                          _viewModel.dynamicFormModel.questions.add(Question(
-                              question: questionController.text,
-                              questionType: _viewModel.selectedQuestionType?.index,
-                              options: options,
-                              isRequired: _viewModel.isRequired,
-                              // validators: []
-                          ));
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-                        }
+                    Container(
+                      color: AppTheme.whiteColor,
+                      child: GestureDetector(
+                        onTap: (){
+                          if(formkey.currentState?.validate() ?? false){
+                            _viewModel.dynamicFormModel.formName= _viewModel.formName.text;
+                            _viewModel.dynamicFormModel.questions.add(Question(
+                                question: questionController.text,
+                                questionType: _viewModel.selectedQuestionType?.index,
+                                options: options,
+                                isRequired: _viewModel.isRequired,
+                                // validators: []
+                            ));
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          }
 
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 14),
-                        child: Container(
-                          width: double.infinity,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppTheme.accentColor,
-                             borderRadius: BorderRadius.circular(8)
-                          ),
-                          child: Center(
-                            child: Text(SharedLocalization.getLocalization!().surveyAddQuestion,
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.whiteColor
-                              ),),
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 14),
+                          child: Container(
+                            width: double.infinity,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentColor,
+                               borderRadius: BorderRadius.circular(8)
+                            ),
+                            child: Center(
+                              child: Text(SharedLocalization.getLocalization!().surveyAddQuestion,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.whiteColor
+                                ),),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
+                    )
 
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -1475,12 +1486,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                       showSurveyId: res.showSurveyId,
                       questions: res.questions,
                     questionnaireTime: res.questionnaireTime,
+                    questionsCount : res.questionsCount,
                     originalFormMasterId: res.originalFormMasterId
 
                   );
                 }
                 else{
                   FormModel res = await _viewModel.addForm(FormModel(
+                    // id: "",
                     formName: _viewModel.formName.text,
                     validLocation:_viewModel.validLocation,
                     showSurveyId: _viewModel.showSurveyID,
@@ -1496,6 +1509,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                       formName: _viewModel.formName.text,
                       validLocation: _viewModel.validLocation,
                       showSurveyId: _viewModel.showSurveyID,
+                      questionsCount : res.questionsCount,
                       questions: _viewModel.dynamicFormModel.questions));
                 }
                Navigator.pop(context);

@@ -395,11 +395,17 @@
 //   }
 // }
 //
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:agent_module/repository/models/customer.output_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:questionnaire/app/app_enums.dart';
+import 'package:questionnaire/app/app_shared.dart';
 import 'package:questionnaire/domain/model/client_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
@@ -417,8 +423,11 @@ import 'package:sembast/sembast.dart';
 import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_module/service/loader.service.dart';
+import 'package:shared_module/service/localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
 
+import '../../../app/di.dart';
 import '../../../domain/model/client_model.dart';
 
 
@@ -431,6 +440,8 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../../domain/model/from_model.dart';
 import '../../build_questionnaire_form/widgets/attachment_widget.dart';
+import '../../select_customer/select_customer_screen.dart';
+import '../viewmodel/questionaires_info_viewmodel.dart';
 class QuestionairesInfoView extends StatefulWidget {
   final String formName;
   // final ClientItemModel? customerName;
@@ -449,6 +460,7 @@ class QuestionairesInfoView extends StatefulWidget {
   required this.showSurveyId,
   required this.questionnaireTime,
   });
+// QuestionairesInfoViewModel
 
   @override
   _QuestionairesInfoViewState createState() => _QuestionairesInfoViewState();
@@ -466,15 +478,54 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
   double? long;
   late List<Question> formItemsLocal;
 
+  String fixJson(String jsonString) {
+    // Remove "creationTime" and its value
+    jsonString = jsonString.replaceAll(RegExp(r'creationTime:\s*[^,}]+[,}]'), '');
+
+    return jsonString
+    // Ensure all keys are enclosed in double quotes
+        .replaceAllMapped(RegExp(r'(\w+):'), (match) => '"${match[1]}":')
+    // Ensure values are wrapped in double quotes, except for booleans, null, int, and double
+        .replaceAllMapped(RegExp(r':\s*([^",{}\[\]]+)([,}])'), (match) {
+      String value = match[1]!;
+      String separator = match[2]!;
+
+      // Check if the value is a valid boolean, null, int, or double
+      if (value == "true" || value == "false" || value == "null" || RegExp(r'^-?\d+(\.\d+)?$').hasMatch(value)) {
+        return ': $value$separator'; // Keep booleans, null, ints, and doubles without quotes
+      }
+
+      return ': "$value"$separator'; // Wrap other values in quotes
+    })
+    // Handle empty values
+        .replaceAll(": ,", ': "",')
+        .replaceAll(":}", ': ""}')
+        .replaceAll(":]", ': ""]');
+  }
   @override
   void didChangeDependencies() {
-    formItemsLocal=widget.formItems.where((form)=>form.isHide==false).toList();
+    formItemsLocal=_viewModel.surveyData.questions?.where((form)=>form.isHide==false).toList() ?? [];
     super.didChangeDependencies();
   }
+  final QuestionairesInfoViewModel _viewModel = instance<QuestionairesInfoViewModel>();
+
+  bool isLoading =false;
+
+  FormModel currentSurvey = FormModel();
   @override
   void initState() {
     print("validLocation............ ${widget.validLocation}");
-    formItemsLocal=widget.formItems.where((form)=>form.isHide==false).toList();
+    print("surveyId............ ${widget.surveyId}");
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      isLoading =true;
+      setState(() {});
+       currentSurvey = await _viewModel.getQuestionaireQuestion(surveyId: widget.surveyId);
+     formItemsLocal=currentSurvey.questions?.where((form)=>form.isHide==false).toList() ?? [];
+      isLoading =false;
+      setState(() {});
+    });
+    // formItemsLocal=idget.formItems.where((form)=>form.isHide==false).toList();
+        //widget.formItems.where((form)=>form.isHide==false).toList();
     super.initState();
   }
 
@@ -622,6 +673,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                       ),
                     ),
                     const SizedBox(height: 12,),
+                    isLoading?SizedBox():
                     formItemsLocal.isEmpty?
                         Text(
                           "${SharedLocalization
@@ -635,7 +687,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                         physics: NeverScrollableScrollPhysics(),
                         itemCount: formItemsLocal.length,
                         itemBuilder: (BuildContext context, int index) {
-                          var currentFormItem = formItemsLocal[index];
+                          Question currentFormItem = formItemsLocal[index];
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -643,7 +695,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                                 currentFormItem.question ?? '',
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 12,
                               ),
                               // Render input field based on question type
@@ -707,9 +759,12 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         ),
       ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
+          onPressed: () async {
+            // log("formItemsLocal ${json.encode(formItemsLocal)}");
             if (_formKey.currentState!.validate()) {
               if((widget.validLocation)){
+                LoaderService.show();
+                currentSurvey.id =widget.surveyId;
                 Future.microtask(() async {
                   try {
                     Map<String, double> coordinates = await getCurrentLatLon();
@@ -721,11 +776,25 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                     _formKey.currentState!.save();
                     // Do something with the form data
                     print(_formData);
+                    currentSurvey.questions=formItemsLocal;
+                    currentSurvey.lat=lat.toString();
+                    currentSurvey.lng=long.toString();
+                    LoaderService.hide();
+                    await _viewModel.submitSurvey(currentSurvey);
                     Navigator.pop(context);
                   } catch (e) {
                     print("Error: $e");
                   }
                 });
+              }else{
+                _formKey.currentState!.save();
+                // Do something with the form data
+                print(_formData);
+                log(formItemsLocal.toString());
+                currentSurvey.questions=formItemsLocal;
+                LoaderService.show();
+                await _viewModel.submitSurvey(currentSurvey);
+               Navigator.pop(context);
               }
 
             }
@@ -800,15 +869,21 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
     }
     return defaultLocation;
   }
-  ClientItemModel? selectedFormId;
+  CustomerOutputModel? selectedClient;
+  String timeOfDayToString(TimeOfDay time) {
+    String hour = time.hour.toString().padLeft(2, '0'); // Ensure two digits
+    String minute = time.minute.toString().padLeft(2, '0');
+    return "$hour:$minute";
+  }
 
-  List<ClientItemModel> allClients = [
-    ClientItemModel(id: 1, name: 'عميل رقم ١'),
-    ClientItemModel(id: 2, name: 'عميل رقم ٢'),
-    ClientItemModel(id: 3, name: 'عميل رقم ٣'),
-  ];
+  TimeOfDay stringToTimeOfDay(String timeString) {
+    List<String> parts = timeString.split(":"); // Split into ["03", "40"]
+    int hour = int.parse(parts[0]); // Convert "03" to 3
+    int minute = int.parse(parts[1]); // Convert "40" to 40
+    return TimeOfDay(hour: hour, minute: minute);
+  }
   Widget renderInputField(Question formItem) {
-    switch (formItem.questionType) {
+    switch (AppShared.questionTypeList[formItem.questionType??0].questionType) {
       case FormItemType.ShortText:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -818,6 +893,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             //     fontWeight: FontWeight.bold),),
             // SizedBox(height: 12,),
             TextFormField(
+              controller: TextEditingController(text: "${formItem.answer ?? ''}"),
               decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(
@@ -844,11 +920,15 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 }
                 return null;
               },
+              onChanged: (String? value){
+                formItem.answer = value;
+              },
               onSaved: (value) => _formData[formItem.question??''] = value,
             ),
           ],
         );
       case FormItemType.LongText:
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -857,6 +937,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             //     fontWeight: FontWeight.bold),),
             // SizedBox(height: 12,),
             TextFormField(
+              controller: TextEditingController(text: "${formItem.answer ?? ''}"),
               decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(
@@ -881,16 +962,19 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 }
                 return null;
               },
+              onChanged: (String? value){
+                formItem.answer = value;
+              },
               onSaved: (value) => _formData[formItem.question] = value,
             ),
           ],
         );
       case FormItemType.SingleChoice:
-        List<DropdownMenuItem<String>> dropdownItems = [];
+        List<DropdownMenuItem<Option>> dropdownItems = [];
 
         if (!formItem.isRequired) {
           dropdownItems.add(
-            DropdownMenuItem<String>(
+            DropdownMenuItem<Option>(
               child: Text(""),
               value: null,
             ),
@@ -899,28 +983,34 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 
 
         formItem.options ??= [];
-        List<String> options = formItem.options!
+        List<Option> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
-            .map((option) => option.option??'') // Extract the option string
+            .map((option) => option) // Extract the option string
             .toList();
         dropdownItems.addAll(
           options
-              .where((option) => option.trim().isNotEmpty
+              .where((option) => option.option?.isNotEmpty ?? false
 
           ) // Ignore empty or null options
               .map(
                 (option) => DropdownMenuItem(
-              child: Text(option),
               value: option,
+              child: Text(option.option ?? ''),
             ),
           ),
         );
+        // formItem.answer="39";
+        Option? selectedOption;
+        if(formItem.answer != '' && formItem.answer != null){
+           selectedOption = options.firstWhere((opt)=> opt.id==int.parse(formItem.answer) );
+        }
+
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButtonFormField<String>(
-              value: null,
+            DropdownButtonFormField<Option>(
+              value: selectedOption,
               decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(width: 0.7),
@@ -937,6 +1027,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
               items: dropdownItems,
               onChanged: (value) {
                 _formData[formItem.question] = value;
+                formItem.answer=value?.id?.toString();
               },
               validator: (value) {
                 if (formItem.isRequired && value == null) {
@@ -953,29 +1044,26 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         formItem.options ??= [];
         List<String> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
-            .map((option) => option.option??'') // Extract the option string
+            .map((option) => option.option ?? '') // Extract the option string
+            .where((option) => option.trim().isNotEmpty) // Filter out empty options
             .toList();
-
-        List<String> validOptions = options
-            .where((option) => option.trim().isNotEmpty)
-            .toList(); // Filter out empty options
-
+       // formItem.answer = "اختيار واحد,تاتى ";
+        _formData[formItem.question]=formItem.answer;
         return StatefulBuilder(
-          builder: (context, setInnerState) { // Only rebuild this part
+          builder: (context, setInnerState) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: validOptions.isEmpty
-                  ? [] // If no valid options, return an empty widget
-                  : validOptions.map((option) => CheckboxListTile(
+              children: options.isEmpty
+                  ? [] // Return an empty widget if no valid options
+                  : options.map((option) => CheckboxListTile(
                 activeColor: AppTheme.accentColor,
                 title: Text(option),
-                value: (_formData[formItem.question] as List<String>?)?.contains(option) ?? false,
+                value: (_formData[formItem.question] as String?)?.split(',').contains(option) ?? false,
                 onChanged: (bool? value) {
                   if (value == null) return;
 
-                  setInnerState(() { // Update only this part
-                    List<String> selectedOptions =
-                        (_formData[formItem.question] as List<String>?) ?? [];
+                  setInnerState(() {
+                    List<String> selectedOptions = (_formData[formItem.question] as String?)?.split(',') ?? [];
 
                     if (value) {
                       selectedOptions.add(option);
@@ -983,7 +1071,14 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                       selectedOptions.remove(option);
                     }
 
-                    _formData[formItem.question] = selectedOptions;
+                    if (selectedOptions.isEmpty) {
+                      _formData.remove(formItem.question); // Remove if empty
+                      formItem.answer = null;
+                    } else {
+                      String updatedAnswer = selectedOptions.join(',');
+                      _formData[formItem.question] = updatedAnswer;
+                      formItem.answer = updatedAnswer;
+                    }
                   });
                 },
               )).toList(),
@@ -992,12 +1087,14 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
 
 
+
       case FormItemType.Number:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             TextFormField(
+              controller: TextEditingController(text: formItem.answer ?? ''),
               decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(width: 0.7),
@@ -1022,13 +1119,20 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 }
                 return null;
               },
+              onChanged: (String? value){
+                formItem.answer = value;
+              },
               onSaved: (value) =>
               _formData[formItem.question] = int.parse(value!),
             ),
           ],
         );
       case FormItemType.Float:
-        TextEditingController controller = TextEditingController(text: "00.00");
+        TextEditingController controller =
+
+        TextEditingController(text:
+        formItem.answer == null || formItem.answer == ""?
+        "00.00": formItem.answer );
         FocusNode focusNode = FocusNode();
 
         focusNode.addListener(() {
@@ -1083,6 +1187,17 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                   extentOffset: controller.text.length,
                 );
               },
+              onTapOutside: (val){
+                if (controller.text.isNotEmpty) {
+                  double? number = double.tryParse(controller.text);
+                  if (number != null) {
+                    controller.text = number.toStringAsFixed(2);
+                  }
+                }
+              },
+              onChanged: (String? value){
+                formItem.answer = value;
+              },
               onSaved: (value) {
                 _formData[formItem.question] = double.parse(value ?? '0.00');
               },
@@ -1090,6 +1205,12 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
           ],
         );
       case FormItemType.Date:
+
+        if(formItem.answer!= null && formItem.answer != ''){
+          _formData[formItem.question] =  DateTime.parse(formItem.answer);
+        }
+
+
       // Create a controller for the text field
         TextEditingController dateController = TextEditingController(
           text: _formData[formItem.question] != null
@@ -1148,6 +1269,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                   // Update the text field without setState
                   dateController.text = selectedDate.toLocal().toString().split(' ')[0];
                   _formData[formItem.question] = selectedDate;
+                  formItem.answer = selectedDate.toString();
                 }
               },
               validator: (value) {
@@ -1161,6 +1283,13 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
       case FormItemType.Time:
       // Create a controller for the text field
+print("formItem.answer ${formItem.answer}");
+        if(formItem.answer!= null && formItem.answer != ''){
+          _formData[formItem.question] =
+              stringToTimeOfDay(formItem.answer);
+
+        }
+
         TextEditingController timeController = TextEditingController(
           text: _formData[formItem.question] != null
               ? (_formData[formItem.question] as TimeOfDay).format(context)
@@ -1217,6 +1346,8 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                   // Update the controller without using setState
                   timeController.text = selectedTime.format(context);
                   _formData[formItem.question] = selectedTime;
+
+                  formItem.answer =  timeOfDayToString(selectedTime);
                 }
               },
               validator: (value) {
@@ -1233,9 +1364,12 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
           formItem: formItem,
         );
       case FormItemType.Location:
+
+        if(formItem.answer != null && formItem.answer != '' ){
+        _formData[formItem.question] = formItem.answer;
+        }
       // Create a ValueNotifier to track location updates
         ValueNotifier<String?> locationNotifier = ValueNotifier<String?>(_formData[formItem.question]);
-
         return GestureDetector(
           onTap: () async {
             LatLng t = await selectFirstBranchLocation(
@@ -1248,6 +1382,8 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             // Update the ValueNotifier to trigger a UI refresh
             locationNotifier.value = newLocation;
             _formData[formItem.question] = newLocation;
+            formItem.answer = newLocation;
+
           },
           child: Container(
             width: double.infinity,
@@ -1285,20 +1421,19 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
           ),
         );
 
-
       case FormItemType.Client:
-      // Create a modified list with an empty choice if required
-        List<ClientItemModel?> clientList = List.from(allClients);
+        CustomerOutputModel answer;
 
-        if (formItem.isRequired) {
-          clientList.insert(0, null); // Insert an empty choice at the beginning
+        if(formItem.answer != null &&formItem.answer != ''){
+         selectedClient =
+           CustomerOutputModel.fromJson(json.decode(fixJson(formItem.answer.toString())));
+         // print("selectedClient..... ${selectedClient?.id}");
         }
-
         return Container(
           decoration: BoxDecoration(
             color: Colors.transparent,
           ),
-          child: DropdownButtonFormField<ClientItemModel?>(
+          child: TextFormField(
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.grey.withOpacity(0.2),
@@ -1311,39 +1446,40 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
               border: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.transparent),
               ),
+              hintText: selectedClient != null
+                  ? LocalizationService.isArabic?
+                      selectedClient!.customerName:
+                      selectedClient!.customerNameEn
+                  : SharedLocalization.getLocalization!().selectClient,
+              hintStyle: const TextStyle(fontSize: 16, color: Colors.black),
             ),
-            iconSize: 20,
-            style: TextStyle(fontSize: 16),
-            hint: Text(
-              SharedLocalization.getLocalization!().selectClient,
-              style: TextStyle(fontSize: 16),
-            ),
-            value: selectedFormId,
-            onChanged: (value) {
-             // setState(() {
-                selectedFormId = value;
-             // });
-            },
-            items: clientList.map((formItem) {
-              return DropdownMenuItem<ClientItemModel?>(
-                value: formItem,
-                child: Text(
-                  formItem == null ? SharedLocalization.getLocalization!().selectClient : formItem.name,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                  ),
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+            readOnly: true, // Prevent manual editing
+            onTap: () async {
+               CustomerOutputModel? result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SelectCustomerScreen(),
                 ),
               );
-            }).toList(),
+
+              if (result != null) {
+                selectedClient = result;
+                (context as Element).markNeedsBuild(); // Refresh UI without setState
+              }
+              print("id ..... ${result?.id}");
+              formItem.answer = result?.toJson().toString();
+                 // "${result?.id},${result?.customerName},${result?.customerNameEn},";
+            },
             validator: (value) {
-              if (formItem.isRequired && value == null) {
+              if (formItem.isRequired && selectedClient == null) {
                 return SharedLocalization.getLocalization!().pleaseSelectAClient;
               }
-              return null; // Validation passes
+              return null;
             },
           ),
         );
+
 
 
 

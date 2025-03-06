@@ -1,13 +1,21 @@
+import 'dart:developer';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:clean_arch_base/repository/model/attachment.output_model.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_module/app_services/attachment.app_service.dart';
 import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 import '../../../domain/model/from_model.dart';
 import '../../../domain/model/make_form_template/questionaires_item.dart';
 
 import 'package:shared_module/localization/shared.localization.dart';
+
+import '../../../presentation/resources/color_manager.dart';
 
 
 
@@ -17,14 +25,23 @@ import 'package:shared_module/localization/shared.localization.dart';
 class AttachmentWidget extends StatefulWidget {
   final Question formItem;
 
-  AttachmentWidget({required this.formItem});
+  const AttachmentWidget({super.key, required this.formItem});
 
   @override
   _AttachmentWidgetState createState() => _AttachmentWidgetState();
 }
 
 class _AttachmentWidgetState extends State<AttachmentWidget> {
-  List<String> _attachments = [];
+  List<AttachmentDetailOutputModel> _attachments = [];
+  AttachmentAppService attachmentAppService = AttachmentAppService();
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _attachments=parseAttachmentsFromString(widget.formItem.answer);
+    super.initState();
+  }
   void _showAttachmentPicker() async {
     final picker = ImagePicker();
 
@@ -46,8 +63,9 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
             leading: const Icon(Icons.photo_library),
             title: Text(SharedLocalization.getLocalization!().from_gallery),
             onTap: () async {
-              final galleryImages = await picker.pickMultiImage();
-              Navigator.pop(context, galleryImages);
+              final galleryImages = await picker.pickImage(source: ImageSource.gallery);
+              Navigator.pop(context, galleryImages != null ? [galleryImages] : []);
+
             },
           ),
           ListTile(
@@ -57,8 +75,9 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
               final result = await FilePicker.platform.pickFiles(
                 type: FileType.custom,
                 allowedExtensions: ['pdf'],
-                allowMultiple: true,
+                allowMultiple: false,
               );
+
               Navigator.pop(
                   context,
                   result != null
@@ -70,9 +89,16 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
       ),
     );
 
+    print("selectedFiles.... ${selectedFiles?.length}");
     if (selectedFiles != null && selectedFiles.isNotEmpty) {
+      List<AttachmentDetailOutputModel> res = await attachmentAppService.uploadAttachmentFiles(const Uuid().v1(), [File(selectedFiles[0]?.path??'')]);
+
       setState(() {
-        _attachments.addAll(selectedFiles.map((file) => file!.path).toList());
+        _attachments.addAll(
+            //selectedFiles.map((file) => file!.path).toList()
+            res
+        );
+        widget.formItem.answer =getCommaSeparatedValues(_attachments);
       });
     }
   }
@@ -80,11 +106,42 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
   void _deleteAttachment(int index) {
     setState(() {
       _attachments.removeAt(index);
+       widget.formItem.answer =getCommaSeparatedValues(_attachments);
     });
   }
 
+  Future<void> openUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+  String getCommaSeparatedValues(List<AttachmentDetailOutputModel> attachments) {
+    return attachments
+        .map((attachment) =>
+    '${attachment.link ?? ''},${attachment.extension ?? ''},${attachment.attachmentId ?? ''}')
+        .join(',');
+  }
 
+  List<AttachmentDetailOutputModel> parseAttachmentsFromString(String? input) {
+    if ( input == null || input.isEmpty ) return [];
 
+    List<String> items = input.split(','); // Split by commas
+    List<AttachmentDetailOutputModel> attachments = [];
+
+    // Ensure we process in sets of 3 (link, extension, attachmentId)
+    for (int i = 0; i < items.length; i += 3) {
+      attachments.add(AttachmentDetailOutputModel(
+        link: items[i].trim().isNotEmpty ? items[i].trim() : null,
+        extension: (i + 1) < items.length ? items[i + 1].trim() : null,
+        attachmentId: (i + 2) < items.length ? items[i + 2].trim() : null,
+      ));
+    }
+
+    return attachments;
+  }
   @override
   Widget build(BuildContext context) {
     final formItem = widget.formItem;
@@ -126,7 +183,7 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
               children: [
                 Icon(Icons.attach_file, size: 24, color: Colors.grey),
                 Text(
-                  "${_attachments.length} attachments selected",
+                  "${_attachments.length} ${SharedLocalization.getLocalization!().attachments_selected}",
                   style: TextStyle(color: Colors.grey),
                 ),
               ],
@@ -149,11 +206,37 @@ class _AttachmentWidgetState extends State<AttachmentWidget> {
           itemBuilder: (context, index) {
             final file = _attachments[index];
             return ListTile(
-              leading: file.endsWith(".pdf")
-                  ? Icon(Icons.picture_as_pdf, color: Colors.red)
-                  : Image.file(File(file), width: 50, height: 50, fit: BoxFit.cover),
+              onTap: (){
+                openUrl(file.link ?? '');
+              },
+              leading: file.extension?.contains("pdf") ?? false
+                  ?  Container(
+                width: 50,
+                    height: 50,
+                    child: Icon(Icons.picture_as_pdf,
+                    size: 32,
+                    color: Colors.red),
+                  )
+                  : CachedNetworkImage(
+                imageUrl: file.link ?? '',
+                progressIndicatorBuilder: (context, url, downloadProgress) =>
+                    Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 8),
+                        child: CircularProgressIndicator(
+                          value: downloadProgress.progress,
+                          color: ColorManager.primary,
+                        )),
+                fit: BoxFit.cover,
+                width: 50,
+                height: 50,
+                errorWidget: (context, url, error) =>
+                const Center(child: Icon(Icons.info)),
+              ),
+             // Image.network(file,width: 50, height: 50, fit: BoxFit.cover),
+              //Image.file(File(file), width: 50, height: 50, fit: BoxFit.cover),
               title: Text(
-                file.split('/').last,
+                file.link!.split('/').last,
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: IconButton(

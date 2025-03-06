@@ -38,6 +38,10 @@ dependencies:
     sdk: flutter
   shared_module:
     path: ../shared_module
+  agent_module:
+    path: ../agent_module
+  clean_arch_base:
+    path: ../clean_arch_base
   flutter_phoenix: ^1.1.0
   flutter_screenutil: ^5.6.0
   internet_connection_checker: ^1.0.0+1
@@ -57,6 +61,7 @@ dependencies:
   image_picker:
   file_picker:
   geolocator: ^11.0.0
+  url_launcher: 6.2.5
   uuid:
 
 

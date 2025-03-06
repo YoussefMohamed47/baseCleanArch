@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:questionnaire/app/app_enums.dart';
 import 'package:questionnaire/domain/model/make_form_template/QuestionOptionModel.dart';
 import 'package:questionnaire/domain/model/make_form_template/dynamicModel.dart';
@@ -13,6 +14,8 @@ import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
 import '../../../domain/model/from_model.dart';
+import '../../../domain/model/make_form_template/form_list.dart';
+import '../../../domain/repository/forms/forms_repo.dart';
 List<FormModel> allQuestionaires = [];
 class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelInput, QuestionairesViewModelOutput {
   QuestionairesViewModel() : super();
@@ -24,6 +27,8 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
 
 
   String? selectedQuestionType ;
+  ValueNotifier<List<FormModel>> filteredQuestionnaires = ValueNotifier([]);
+
 
   bool isRequired=false;
   LocalFormModel dynamicFormModel = LocalFormModel
@@ -47,6 +52,10 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
   Stream<QuestionairesUseCaseModel> get outputQuestionairesContent =>
       _questionairesStreamController.stream.map((home) => home);
 
+  FormRepository formRepo = FormRepository();
+
+  FormListModel res = FormListModel();
+  bool isLoading = false;
   // input
   @override
   Future start() async {
@@ -54,6 +63,11 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
       _questionairesStreamController =
       StreamController<QuestionairesUseCaseModel>.broadcast();
     }
+
+    print("before ......... $isLoading");
+    res = await formRepo.getForm(isTemplate: false);
+    allQuestionaires = res.items ?? [];
+    filteredQuestionnaires.value = res.items ?? [];
     postDataToView();
   }
 

@@ -23,6 +23,7 @@ import 'package:uuid/uuid.dart';
 import '../../../app/app_enums.dart';
 import '../../../app/app_shared.dart';
 import '../../../domain/model/client_model.dart';
+import '../../../domain/model/from_model.dart';
 import '../../../domain/model/make_form_template/form_model.dart';
 import '../../../presentation/resources/color_manager.dart';
 
@@ -282,20 +283,23 @@ class _QuestionairesViewState extends State<QuestionairesView> {
       _viewModel.postDataToView();
     });
   }
-  List<LocalFormModel> localQuestionnaires=[];
-  ValueNotifier<List<LocalFormModel>> filteredQuestionnaires = ValueNotifier([]);
+  List<FormModel> localQuestionnaires=[];
 
   @override
   void initState() {
     super.initState();
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _viewModel.start();
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      _viewModel.isLoading =true;
+      setState(() {});
+      await _viewModel.start();
+      _viewModel.isLoading =false;
+      setState(() {});
       // localQuestionnaires=allQuestionaires;
       // filteredQuestionnaires.value=allQuestionaires;
     });
   }
 
-  List<LocalFormModel> searchForms(String searchKey) {
+  List<FormModel> searchForms(String searchKey) {
     final lowerKey = searchKey.toLowerCase();
     return localQuestionnaires.where((form) {
       final matchesId = form.id.toString().contains(searchKey);
@@ -321,160 +325,163 @@ class _QuestionairesViewState extends State<QuestionairesView> {
           .getLocalization!().surveyQuestionnaires,
       onSearchFunction: (value) async {
         if (value.trim() == '') {
-          filteredQuestionnaires.value = localQuestionnaires;
+          _viewModel.filteredQuestionnaires.value = localQuestionnaires;
         } else {
-          filteredQuestionnaires.value = searchForms(value);
+          _viewModel.filteredQuestionnaires.value = searchForms(value);
         }
       },
       body: SingleChildScrollView(
         child:
 
 
-        ValueListenableBuilder<List<LocalFormModel>>(
-          valueListenable: filteredQuestionnaires,
+        ValueListenableBuilder<List<FormModel>>(
+          valueListenable: _viewModel.filteredQuestionnaires,
           builder: (context, forms, child) {
-            return Column(
-              children: [
-                //
-                forms.isEmpty ?
-                SizedBox(
-                  height:600,
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      NoItemsFoundIndicatorWidget()
-                    ],
-                  ),
-                ) :
-                ListView.builder(
-                    itemCount: forms.length,
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemBuilder: (context ,index){
-                      return GestureDetector(
-                        onTap: (){
+            return
+
+              Column(
+                children: [
+                  _viewModel.isLoading?
+                  SizedBox():
+                  forms.isEmpty ?
+                  SizedBox(
+                    height:600,
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        NoItemsFoundIndicatorWidget()
+                      ],
+                    ),
+                  ) :
+                  ListView.builder(
+                      itemCount: forms.length,
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context ,index){
+                        return GestureDetector(
+                          onTap: (){
 
 
-                          if(widget.isQuestionnaires){
-                            // List<QuestionairesItem> temp = [];
-                            // for(int i =0 ; i < forms[index].questions.length ; i ++){
-                            //   List<OptionQuestionnaireModel> options = [];
-                            //   for(int o =0 ; o < (forms[index].questions[i].options?.length ?? 0); o ++){
-                            //     for(int j =0 ; j < forms[index].questions[i].options![o].optionController!.text.split(",").length ; j ++){
-                            //       options.add(
-                            //
-                            //           OptionQuestionnaireModel(
-                            //             option: forms[index].questions[i].options![o].optionController!.text.split(",")[j],
-                            //             isHide: forms[index].questions[i].options![o].isHide ?? false
-                            //           )
-                            //           );
-                            //     }
-                            //   }
-                            //   temp.add(QuestionairesItem(question:forms[index].questions[i].question ?? '',
-                            //       questionType:
-                            //       AppShared.getFormItemTypeByIndex(forms[index].questions[i].questionType ?? 1),
-                            //       isRequired:  forms[index].questions[i].isRequired ?? false,
-                            //       options:options,
-                            //     isHide:  forms[index].questions[i].isHide ?? false
-                            //   ));
-                            // }
-                            // Navigator.push(
-                            //     context,
-                            //     BasePageRoute(
-                            //         builder: (context) => DynamicForm(
-                            //           formName: data.allQuestionaires[index].formName ?? '',
-                            //           formItems:  temp,
-                            //
-                            //         )));
-                            Navigator.push(
-                                context,
-                                BasePageRoute(
-                                    builder: (context) => QuestionairesInfoView(
-                                      formName: forms[index].formName ?? '',
-                                      formItems:  forms[index].questions,
-                                      // customerName:forms[index].customerName,
-                                      validLocation: forms[index].validLocation ?? false,
-                                      surveyId: forms[index].id,
-                                      showSurveyId: forms[index].showSurveyId ?? false,
-                                      questionnaireTime: forms[index].questionnaireTime ?? DateTime.now() ,
+                            if(widget.isQuestionnaires){
+                              // List<QuestionairesItem> temp = [];
+                              // for(int i =0 ; i < forms[index].questions.length ; i ++){
+                              //   List<OptionQuestionnaireModel> options = [];
+                              //   for(int o =0 ; o < (forms[index].questions[i].options?.length ?? 0); o ++){
+                              //     for(int j =0 ; j < forms[index].questions[i].options![o].optionController!.text.split(",").length ; j ++){
+                              //       options.add(
+                              //
+                              //           OptionQuestionnaireModel(
+                              //             option: forms[index].questions[i].options![o].optionController!.text.split(",")[j],
+                              //             isHide: forms[index].questions[i].options![o].isHide ?? false
+                              //           )
+                              //           );
+                              //     }
+                              //   }
+                              //   temp.add(QuestionairesItem(question:forms[index].questions[i].question ?? '',
+                              //       questionType:
+                              //       AppShared.getFormItemTypeByIndex(forms[index].questions[i].questionType ?? 1),
+                              //       isRequired:  forms[index].questions[i].isRequired ?? false,
+                              //       options:options,
+                              //     isHide:  forms[index].questions[i].isHide ?? false
+                              //   ));
+                              // }
+                              // Navigator.push(
+                              //     context,
+                              //     BasePageRoute(
+                              //         builder: (context) => DynamicForm(
+                              //           formName: data.allQuestionaires[index].formName ?? '',
+                              //           formItems:  temp,
+                              //
+                              //         )));
+                              Navigator.push(
+                                  context,
+                                  BasePageRoute(
+                                      builder: (context) => QuestionairesInfoView(
+                                        formName: forms[index].formName ?? '',
+                                        formItems:  forms[index].questions ?? [],
+                                        // customerName:forms[index].customerName,
+                                        validLocation: forms[index].validLocation ?? false,
+                                        surveyId: forms[index].id ?? '',
+                                        showSurveyId: forms[index].showSurveyId ?? false,
+                                        questionnaireTime: forms[index].questionnaireTime ?? DateTime.now() ,
 
-                                    )));
-                          }else{
+                                      )));
+                            }else{
 
-                          }
-                        },
-                        child: PrimaryContainer(
+                            }
+                          },
+                          child: PrimaryContainer(
 
-                          child: Container(
-                            //height: 120,
-                            width: double.infinity,
-                            // color: Colors.white,
-                            child:Padding(
-                              padding:  EdgeInsets.symmetric(vertical: 10.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border:
-                                            Border.all(color: AppTheme.borderColor),
-                                            color:  AppTheme.orangeColor
-                                        ),
-                                        child: Icon(
-                                          SharedIcons.invoiceIcon,
-                                          color: AppTheme.whiteColor,
-                                          size: 25,),
-
-                                      ),
-                                      SizedBox(width: 8,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width:270,
-                                            color: Colors.transparent,
-                                            child: Text(forms[index].formName ??'',
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16
-                                              ),),
+                            child: Container(
+                              //height: 120,
+                              width: double.infinity,
+                              // color: Colors.white,
+                              child:Padding(
+                                padding:  EdgeInsets.symmetric(vertical: 10.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border:
+                                              Border.all(color: AppTheme.borderColor),
+                                              color:  AppTheme.orangeColor
                                           ),
-                                          const SizedBox(height: 3,),
-                                          Text("  ${
-                                              (forms [index].showSurveyId ?? false)?
-                                              forms [index].id : 'mmmmm'}",
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 12,
+                                          child: Icon(
+                                            SharedIcons.invoiceIcon,
+                                            color: AppTheme.whiteColor,
+                                            size: 25,),
 
-                                              )),
+                                        ),
+                                        SizedBox(width: 8,),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              width:270,
+                                              color: Colors.transparent,
+                                              child: Text(forms[index].formName ??'',
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16
+                                                ),),
+                                            ),
+                                            const SizedBox(height: 3,),
+                                            Text("  ${
+                                                (forms [index].showSurveyId ?? false)?
+                                                forms [index].id : ''}",
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 12,
 
-                                        ],
-                                      ),
+                                                )),
+
+                                          ],
+                                        ),
 
 
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ) ,
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ) ,
+                            ),
                           ),
-                        ),
-                      );
-                    }),
-              ],
-            );
+                        );
+                      }),
+                ],
+              );
           },
         ),
 

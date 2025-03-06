@@ -63,9 +63,7 @@ class AddQuestionairesViewModel extends BaseViewModel with AddQuestionairesViewM
     //  await getTermsAndConditions();
     allForms=FormListModel();
     allForms = await formRepo.getForm(isTemplate: true);
-    await Future.delayed(const Duration(milliseconds: 250));
     isLoading = false;
-    postDataToView();
     postDataToView();
   }
 

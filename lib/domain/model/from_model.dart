@@ -11,7 +11,11 @@ class FormModel {
   bool? isUsed;
   bool? isActive;
   bool? isTemplate;
+  String? lat;
+  String? lng;
+
   String? originalFormMasterId;
+
 
   FormModel({
     this.id,
@@ -24,6 +28,8 @@ class FormModel {
     this.isUsed,
     this.isActive,
     this.isTemplate,
+    this.lat,
+    this.lng,
     this.originalFormMasterId,
   });
 
@@ -39,6 +45,8 @@ class FormModel {
       isUsed: json['isUsed'],
       isActive: json['isActive'],
       isTemplate: json['isTemplate'],
+      lat: json['lat'],
+      lng: json['lng'],
       originalFormMasterId: json['originalFormMasterId'],
     );
   }
@@ -55,6 +63,8 @@ class FormModel {
       'isUsed': isUsed,
       'isActive': isActive,
       'isTemplate': isTemplate,
+      'lat':lat,
+      'lng':lng,
       'originalFormMasterId': originalFormMasterId,
     };
   }
@@ -63,7 +73,7 @@ class FormModel {
 class Question {
   int? id;
   String question;
-  String? answer;
+  dynamic answer;
   int? questionType;
   List<Option>? options;
   bool isRequired;

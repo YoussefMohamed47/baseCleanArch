@@ -125,47 +125,48 @@ class AppShared {
 
 
   static List<QuestionTypeModel> questionTypeList = [
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ShortText] ?? 2,
-        "${SharedLocalization.getLocalization!().shortText}",
-        FormItemType.ShortText
-    ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.LongText] ?? 1,
+
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.LongText] ?? 0,
         "${SharedLocalization.getLocalization!().longText}",
         FormItemType.LongText
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.SingleChoice] ?? 3,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ShortText] ?? 1,
+        "${SharedLocalization.getLocalization!().shortText}",
+        FormItemType.ShortText
+    ),
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.SingleChoice] ?? 2,
         '${SharedLocalization.getLocalization!().singleChoice}',
         FormItemType.SingleChoice
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.MultiChoice] ?? 4,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.MultiChoice] ?? 3,
         '${SharedLocalization.getLocalization!().multiChoice}',
         FormItemType.MultiChoice
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Number] ?? 5,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Number] ?? 4,
         '${SharedLocalization.getLocalization!().number}',
         FormItemType.Number
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Float] ?? 6,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Float] ?? 5,
         '${SharedLocalization.getLocalization!().float}',
         FormItemType.Float
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Date] ?? 7,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Date] ?? 6,
         '${SharedLocalization.getLocalization!().date} ',
         FormItemType.Date
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Time] ?? 8,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Time] ?? 7,
         '${SharedLocalization.getLocalization!().time}',
         FormItemType.Time
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Attachment] ?? 9,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Attachment] ?? 8,
         '${SharedLocalization.getLocalization!().attachment}',
         FormItemType.Attachment
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 9,
         '${SharedLocalization.getLocalization!().location}',
         FormItemType.Location
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 11,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
         '${SharedLocalization.getLocalization!().client}',
         FormItemType.Client
     ),
