@@ -122,7 +122,7 @@ class _SelectCustomerScreenState extends State<SelectCustomerScreen> {
     return AppScaffold(
       scaffoldKey: _scaffoldKey,
       currentPageName: CurrentPageNameEnum.customerScreen,
-      pageTitle: SharedLocalization.getLocalization!().agents,
+      pageTitle: SharedLocalization.getLocalization!().selectClient,
       searchHintText: SharedLocalization.getLocalization!().searchAgent,
       onFilterFunction: _onFilterData,
       isFilteringListener: isFiltering,
@@ -132,6 +132,7 @@ class _SelectCustomerScreenState extends State<SelectCustomerScreen> {
         _inputViewModel.filterText = query;
         _pagingController.refresh();
       },
+      withDrawer: false,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
