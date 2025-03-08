@@ -129,8 +129,8 @@ class Option {
     this.isHide,
     this.tenantId,
     this.questionId,
-    this.optionController,
-  });
+    TextEditingController? optionController,
+  }) : optionController = optionController ?? TextEditingController(text: option);
 
   factory Option.fromJson(Map<String, dynamic> json) {
     return Option(

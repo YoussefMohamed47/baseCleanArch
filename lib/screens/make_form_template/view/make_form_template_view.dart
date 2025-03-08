@@ -633,7 +633,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
     questionController.text=question.question ?? '';
     List<Option>? options=[];
     options=question.options;
-    _viewModel.isRequired = question.isRequired ?? false;
+    _viewModel.isRequired = question.isRequired ;
 
     final formkey = GlobalKey<FormState>();
 
@@ -854,6 +854,9 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                     },
                                     //  physics: const NeverScrollableScrollPhysics(),
                                     itemBuilder: (context,index){
+                                      if( options?[index].optionController != null){
+                                        options?[index].optionController?.text =  options[index].option ?? '';
+                                      }
                                       return Padding(
                                         key: ValueKey(options?[index]), // Unique Key for ReorderableListView
                                         padding:  EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
@@ -864,6 +867,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                             Expanded(
                                               child: TextFormField(
                                                   controller: options?[index].optionController,
+                                                  //initialValue: options?[index].option ?? '',
                                                   keyboardType: TextInputType.multiline,
                                                   maxLines: 6,
                                                   minLines: 1,
@@ -876,7 +880,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     //     AppConsts.chatMessageMaxLength),
                                                   ],
                                                   onChanged: (value) {
-
+                                                    options?[index].option=value;
                                                   },
                                                   onTap: () {
 
@@ -959,7 +963,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                     ),
                                                   ),
                                                   onTap: () {
-                                                    options?.add(Option(optionController:TextEditingController(), isHide: false));
+                                                    options?.add(Option(optionController:TextEditingController(), isHide: false,option: ''));
                                                     setState(() {});
                                                   },
                                                 ),
@@ -1468,6 +1472,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                   FormModel res = await _viewModel.updateForm(
                       _viewModel.dynamicFormModel.id,
                       FormModel(
+                        id: _viewModel.dynamicFormModel.id,
                       formName: _viewModel.formName.text,
                       validLocation:_viewModel.validLocation,
                       showSurveyId: _viewModel.showSurveyID,
