@@ -59,6 +59,9 @@ class QuestionairesInfoViewModel extends BaseViewModel with QuestionairesInfoVie
   Future<FormModel> submitSurvey(FormModel input ) async {
     return await  formRepo.updateFormDetail(id: input.id ?? '' ,input:  input);
   }
+  Future<FormModel> addSurvey(FormModel input ) async {
+    return await  formRepo.addForm(input);
+  }
   Future<FormModel> getQuestionaireQuestion({required String surveyId}) async {
      surveyData= await formRepo.getFormDetail(id: surveyId);
      return surveyData;

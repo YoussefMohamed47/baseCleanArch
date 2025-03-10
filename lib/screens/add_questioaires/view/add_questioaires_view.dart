@@ -300,8 +300,11 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
 
                                             );
                                             print("gjhkjlhj ${allQuestionaires.length}");
-                                            FormModel res = await _viewModel.formRepo.addForm(questionaire);
-                                            allQuestionaires.add(res);
+                                            //FormModel res = await _viewModel.formRepo.addForm(questionaire);
+                                            FormModel res = await _viewModel.formRepo.getFormDetail(id: questionairesTemp.id ?? '');
+
+                                           // allQuestionaires.add(res);
+                                           // allQuestionaires.add(res);
                                             Navigator.pop(context);
 
                                             // List<QuestionairesItem> temp2 = [];
@@ -343,6 +346,7 @@ class _AddQuestionairesViewState extends State<AddQuestionairesView> {
                                                       surveyId: res.id ?? '',
                                                       showSurveyId: res.showSurveyId ?? false,
                                                       questionnaireTime: res.questionnaireTime ?? DateTime.now() ,
+                                                      isForm: true,
                                                     )));
 
 

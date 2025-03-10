@@ -17,6 +17,9 @@ import '../../../domain/model/from_model.dart';
 import '../../../domain/model/make_form_template/form_list.dart';
 import '../../../domain/repository/forms/forms_repo.dart';
 List<FormModel> allQuestionaires = [];
+
+ValueNotifier<List<FormModel>> filteredQuestionnaires = ValueNotifier([]);
+
 class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelInput, QuestionairesViewModelOutput {
   QuestionairesViewModel() : super();
 
@@ -27,7 +30,6 @@ class QuestionairesViewModel extends BaseViewModel with QuestionairesViewModelIn
 
 
   String? selectedQuestionType ;
-  ValueNotifier<List<FormModel>> filteredQuestionnaires = ValueNotifier([]);
 
 
   bool isRequired=false;

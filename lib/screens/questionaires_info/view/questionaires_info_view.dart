@@ -410,6 +410,7 @@ import 'package:questionnaire/domain/model/client_model.dart';
 import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/presentation/resources/color_manager.dart';
+import 'package:questionnaire/screens/Questionaires/viewmodel/questionaires_viewmodel.dart';
 import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
 import 'package:shared_module/Widget/app_scaffold.dart';
 import 'package:shared_module/localization/shared.localization.dart';
@@ -452,6 +453,8 @@ class QuestionairesInfoView extends StatefulWidget {
   final String surveyId;
   final DateTime questionnaireTime;
 
+  final bool isForm;
+
   QuestionairesInfoView({required this.formName,
   //  required this.customerName,
     required this.formItems,required this.validLocation,
@@ -459,6 +462,7 @@ class QuestionairesInfoView extends StatefulWidget {
   required this.surveyId,
   required this.showSurveyId,
   required this.questionnaireTime,
+  required this.isForm,
   });
 // QuestionairesInfoViewModel
 
@@ -762,40 +766,101 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
           onPressed: () async {
             // log("formItemsLocal ${json.encode(formItemsLocal)}");
             if (_formKey.currentState!.validate()) {
-              if((widget.validLocation)){
-                LoaderService.show();
-                currentSurvey.id =widget.surveyId;
-                Future.microtask(() async {
-                  try {
-                    Map<String, double> coordinates = await getCurrentLatLon();
-                    print("Latitude: ${coordinates['latitude']}");
-                    print("Longitude: ${coordinates['longitude']}");
-                    double? lat=coordinates['latitude'] ;
-                    double? long=coordinates['longitude'];
 
-                    _formKey.currentState!.save();
-                    // Do something with the form data
-                    print(_formData);
-                    currentSurvey.questions=formItemsLocal;
-                    currentSurvey.lat=lat.toString();
-                    currentSurvey.lng=long.toString();
-                    LoaderService.hide();
-                    await _viewModel.submitSurvey(currentSurvey);
-                    Navigator.pop(context);
-                  } catch (e) {
-                    print("Error: $e");
-                  }
-                });
+              print("widget.isForm :::: ${widget.isForm}");
+
+              if(widget.isForm){
+
+
+                if((widget.validLocation)){
+                  print("wkkkkkkkkkkk ${widget.surveyId}");
+                  LoaderService.show();
+                  currentSurvey.id =widget.surveyId;
+                  Future.microtask(() async {
+                    try {
+                      Map<String, double> coordinates = await getCurrentLatLon();
+                      print("Latitude: ${coordinates['latitude']}");
+                      print("Longitude: ${coordinates['longitude']}");
+                      double? lat=coordinates['latitude'] ;
+                      double? long=coordinates['longitude'];
+
+                      _formKey.currentState!.save();
+                      // Do something with the form data
+                      print(_formData);
+                      currentSurvey.questions=formItemsLocal;
+                      currentSurvey.lat=lat.toString();
+                      currentSurvey.lng=long.toString();
+                      currentSurvey.id=null;
+                      currentSurvey.isTemplate=false;
+                    FormModel res =  await _viewModel.addSurvey(currentSurvey);
+                    // allQuestionaires.add(res);
+                      LoaderService.hide();
+                      filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
+                      setState(() {
+
+                      });
+                      Navigator.pop(context);
+
+                    } catch (e) {
+                      print("Error: $e");
+                    }
+                  });
+                }else{
+                  _formKey.currentState!.save();
+                  // Do something with the form data
+                  print(_formData);
+                  log(formItemsLocal.toString());
+                  currentSurvey.questions=formItemsLocal;
+                  currentSurvey.id=null;
+                  currentSurvey.isTemplate=false;
+                 FormModel res = await _viewModel.addSurvey(currentSurvey);
+                  LoaderService.hide();
+                  // allQuestionaires.add(res);
+                  //
+                  filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
+                  setState(() {});
+                  Navigator.pop(context);
+
+                }
               }else{
-                _formKey.currentState!.save();
-                // Do something with the form data
-                print(_formData);
-                log(formItemsLocal.toString());
-                currentSurvey.questions=formItemsLocal;
-                LoaderService.show();
-                await _viewModel.submitSurvey(currentSurvey);
-               Navigator.pop(context);
+                if((widget.validLocation)){
+                  print("wkkkkkkkkkkk ${widget.surveyId}");
+                  LoaderService.show();
+                  currentSurvey.id =widget.surveyId;
+                  Future.microtask(() async {
+                    try {
+                      Map<String, double> coordinates = await getCurrentLatLon();
+                      print("Latitude: ${coordinates['latitude']}");
+                      print("Longitude: ${coordinates['longitude']}");
+                      double? lat=coordinates['latitude'] ;
+                      double? long=coordinates['longitude'];
+
+                      _formKey.currentState!.save();
+                      // Do something with the form data
+                      print(_formData);
+                      currentSurvey.questions=formItemsLocal;
+                      currentSurvey.lat=lat.toString();
+                      currentSurvey.lng=long.toString();
+
+                      await _viewModel.submitSurvey(currentSurvey);
+                      LoaderService.hide();
+                      Navigator.pop(context);
+                    } catch (e) {
+                      print("Error: $e");
+                    }
+                  });
+                }else{
+                  _formKey.currentState!.save();
+                  // Do something with the form data
+                  print(_formData);
+                  log(formItemsLocal.toString());
+                  currentSurvey.questions=formItemsLocal;
+                  await _viewModel.submitSurvey(currentSurvey);
+                  LoaderService.hide();
+                  Navigator.pop(context);
+                }
               }
+
 
             }
           },
@@ -845,11 +910,15 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
     if (!isReadOnly) {
       defaultLocation = await getGeoLocationPosition(
           isShowWarningGPSEnable: false); //selected.location == null
+      LoaderService.hide();
     }
     if (location == null && defaultLocation == null) {
+      LoaderService.hide();
       return;
     }
+    LoaderService.hide();
     if (!context.mounted) return;
+    LoaderService.hide();
     final currentPostition = await Navigator.of(context).push(MaterialPageRoute(
       fullscreenDialog: true,
       builder: (ctx) => MapScreen(
@@ -1045,46 +1114,67 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         List<String> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
             .map((option) => option.option ?? '') // Extract the option string
-            .where((option) => option.trim().isNotEmpty) // Filter out empty options
+            .where((option) => option.trim().isNotEmpty) // Remove empty options
             .toList();
-       // formItem.answer = "اختيار واحد,تاتى ";
-        _formData[formItem.question]=formItem.answer;
-        return StatefulBuilder(
-          builder: (context, setInnerState) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: options.isEmpty
-                  ? [] // Return an empty widget if no valid options
-                  : options.map((option) => CheckboxListTile(
-                activeColor: AppTheme.accentColor,
-                title: Text(option),
-                value: (_formData[formItem.question] as String?)?.split(',').contains(option) ?? false,
-                onChanged: (bool? value) {
-                  if (value == null) return;
 
-                  setInnerState(() {
-                    List<String> selectedOptions = (_formData[formItem.question] as String?)?.split(',') ?? [];
+        return FormField<List<String>>(
+          validator: (value) {
+            if (formItem.isRequired && (value == null || value.isEmpty)) {
+              return SharedLocalization.getLocalization!().pleaseSelectOption; // Show error message
+            }
+            return null; // No error
+          },
+          builder: (FormFieldState<List<String>> fieldState) {
+            return StatefulBuilder(
+              builder: (context, setInnerState) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (options.isNotEmpty)
+                      ...options.map((option) => CheckboxListTile(
+                        activeColor: AppTheme.accentColor,
+                        title: Text(option),
+                        value: (formItem.answer as String?)?.split(',').contains(option) ?? false,
+                        onChanged: (bool? value) {
+                          if (value == null) return;
 
-                    if (value) {
-                      selectedOptions.add(option);
-                    } else {
-                      selectedOptions.remove(option);
-                    }
+                          setInnerState(() {
+                            List<String> selectedOptions = (formItem.answer as String?)?.split(',') ?? [];
 
-                    if (selectedOptions.isEmpty) {
-                      _formData.remove(formItem.question); // Remove if empty
-                      formItem.answer = null;
-                    } else {
-                      String updatedAnswer = selectedOptions.join(',');
-                      _formData[formItem.question] = updatedAnswer;
-                      formItem.answer = updatedAnswer;
-                    }
-                  });
-                },
-              )).toList(),
+                            if (value) {
+                              selectedOptions.add(option);
+                            } else {
+                              selectedOptions.remove(option);
+                            }
+
+                            if (selectedOptions.isEmpty) {
+                              formItem.answer = null;
+                            } else {
+                              formItem.answer = selectedOptions.join(',');
+                            }
+
+                            // Update FormField state
+                            fieldState.didChange(selectedOptions);
+                          });
+                        },
+                      )),
+
+                    // Show validation error message
+                    if (fieldState.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+                        child: Text(
+                          fieldState.errorText ?? '',
+                          style: TextStyle(color: Colors.red, fontSize: 14),
+                        ),
+                      ),
+                  ],
+                );
+              },
             );
           },
         );
+
 
 
 
@@ -1364,62 +1454,143 @@ print("formItem.answer ${formItem.answer}");
           formItem: formItem,
         );
       case FormItemType.Location:
-
-        if(formItem.answer != null && formItem.answer != '' ){
-        _formData[formItem.question] = formItem.answer;
+        if (formItem.answer != null && formItem.answer!.isNotEmpty) {
+          _formData[formItem.question] = formItem.answer;
         }
-      // Create a ValueNotifier to track location updates
+
+        // Create a ValueNotifier to track location updates
         ValueNotifier<String?> locationNotifier = ValueNotifier<String?>(_formData[formItem.question]);
-        return GestureDetector(
-          onTap: () async {
-            LatLng t = await selectFirstBranchLocation(
-              LatLng(30.044420, 31.235712),
-              false,
-            );
 
-            String newLocation = "${t.latitude},${t.longitude}";
-
-            // Update the ValueNotifier to trigger a UI refresh
-            locationNotifier.value = newLocation;
-            _formData[formItem.question] = newLocation;
-            formItem.answer = newLocation;
-
+        return FormField<String>(
+          validator: (value) {
+            if (formItem.isRequired && (value == null || value.isEmpty)) {
+              return SharedLocalization.getLocalization!().filedRequired; // Error message
+            }
+            return null;
           },
-          child: Container(
-            width: double.infinity,
-            color: Colors.transparent,
-            child: ValueListenableBuilder<String?>(
-              valueListenable: locationNotifier,
-              builder: (context, location, child) {
-                return (location == null || location.isEmpty)
-                    ? Center(
+          builder: (FormFieldState<String> fieldState) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    LoaderService.show();
+                    LatLng? t = await selectFirstBranchLocation(
+                      LatLng(30.044420, 31.235712),
+                      false,
+                    );
+
+                    if (t == null) {
+                      // Reset the value if canceled
+                      locationNotifier.value = null;
+                      _formData.remove(formItem.question);
+                      formItem.answer = null;
+                      fieldState.didChange(null);
+                    } else {
+                      // Update with the new location
+                      String newLocation = "${t.latitude},${t.longitude}";
+                      locationNotifier.value = newLocation;
+                      _formData[formItem.question] = newLocation;
+                      formItem.answer = newLocation;
+                      fieldState.didChange(newLocation);
+                    }
+                  },
                   child: Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black54),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        SharedLocalization.getLocalization!().selectLocation,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
+                    color: Colors.transparent,
+                    child: ValueListenableBuilder<String?>(
+                      valueListenable: locationNotifier,
+                      builder: (context, location, child) {
+                        return Column(
+                          children: [
+                            (location == null || location.isEmpty)
+                                ? Center(
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: fieldState.hasError ? Colors.red : Colors.black54),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    SharedLocalization.getLocalization!().selectLocation,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ),
+                            )
+                                : Container(
+                              height: 200,
+                              child: Stack(
+                                children: [
+                                  // Display the map
+                                  StaticMapScreen(
+                                    latitude: double.parse(location.split(',')[0]),
+                                    longitude: double.parse(location.split(',')[1]),
+                                  ),
+
+                                  // Circular close button to reset location
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        // Reset location when clicking the close button
+                                        locationNotifier.value = null;
+                                        _formData.remove(formItem.question);
+                                        formItem.answer = null;
+                                        fieldState.didChange(null);
+                                      },
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black26,
+                                              blurRadius: 4,
+                                              spreadRadius: 1,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
-                )
-                    : Container(
-                  height: 200,
-                  child: StaticMapScreen(
-                    latitude: double.parse(location.split(',')[0]),
-                    longitude: double.parse(location.split(',')[1]),
+                ),
+
+                // Show validation error message if needed
+                if (fieldState.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+                    child: Text(
+                      fieldState.errorText ?? '',
+                      style: TextStyle(color: Colors.red, fontSize: 14),
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
+              ],
+            );
+          },
         );
+
+
+
 
       case FormItemType.Client:
         CustomerOutputModel answer;

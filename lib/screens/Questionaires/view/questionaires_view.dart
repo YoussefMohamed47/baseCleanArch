@@ -299,6 +299,11 @@ class _QuestionairesViewState extends State<QuestionairesView> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    setState(() {}); // Forces UI rebuild
+  }
   List<FormModel> searchForms(String searchKey) {
     final lowerKey = searchKey.toLowerCase();
     return localQuestionnaires.where((form) {
@@ -325,9 +330,9 @@ class _QuestionairesViewState extends State<QuestionairesView> {
           .getLocalization!().surveyQuestionnaires,
       onSearchFunction: (value) async {
         if (value.trim() == '') {
-          _viewModel.filteredQuestionnaires.value = localQuestionnaires;
+          filteredQuestionnaires.value = localQuestionnaires;
         } else {
-          _viewModel.filteredQuestionnaires.value = searchForms(value);
+          filteredQuestionnaires.value = searchForms(value);
         }
       },
       body: SingleChildScrollView(
@@ -335,8 +340,9 @@ class _QuestionairesViewState extends State<QuestionairesView> {
 
 
         ValueListenableBuilder<List<FormModel>>(
-          valueListenable: _viewModel.filteredQuestionnaires,
+          valueListenable: filteredQuestionnaires,
           builder: (context, forms, child) {
+            print("filteredQuestionnaires........ ${forms.length}");
             return
 
               Column(
@@ -404,7 +410,8 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                         validLocation: forms[index].validLocation ?? false,
                                         surveyId: forms[index].id ?? '',
                                         showSurveyId: forms[index].showSurveyId ?? false,
-                                        questionnaireTime: forms[index].questionnaireTime ?? DateTime.now() ,
+                                        questionnaireTime: forms[index].questionnaireTime ?? DateTime.now(),
+                                        isForm: false ,
 
                                       )));
                             }else{
