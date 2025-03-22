@@ -1250,6 +1250,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      sha256: "59b6d2a7deacade6129d2f15615ca49ed56278fea055cd2e52cace78a343dd5e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "28.2.11"
+  syncfusion_flutter_signaturepad:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_signaturepad
+      sha256: "114a8910f4d20bdeee03590ea272d9fbd03004e680f0058b1fec39f6aedb4531"
+      url: "https://pub.dev"
+    source: hosted
+    version: "28.1.33"
   synchronized:
     dependency: transitive
     description:

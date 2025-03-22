@@ -328,13 +328,13 @@ class _QuestionairesViewState extends State<QuestionairesView> {
           .getLocalization!().surveySearchQuestionnaires,
       pageTitle: SharedLocalization
           .getLocalization!().surveyQuestionnaires,
-      onSearchFunction: (value) async {
-        if (value.trim() == '') {
-          filteredQuestionnaires.value = localQuestionnaires;
-        } else {
-          filteredQuestionnaires.value = searchForms(value);
-        }
-      },
+      // onSearchFunction: (value) async {
+      //   if (value.trim() == '') {
+      //     filteredQuestionnaires.value = localQuestionnaires;
+      //   } else {
+      //     filteredQuestionnaires.value = searchForms(value);
+      //   }
+      // },
       body: SingleChildScrollView(
         child:
 
@@ -368,38 +368,6 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                         return GestureDetector(
                           onTap: (){
 
-
-                            if(widget.isQuestionnaires){
-                              // List<QuestionairesItem> temp = [];
-                              // for(int i =0 ; i < forms[index].questions.length ; i ++){
-                              //   List<OptionQuestionnaireModel> options = [];
-                              //   for(int o =0 ; o < (forms[index].questions[i].options?.length ?? 0); o ++){
-                              //     for(int j =0 ; j < forms[index].questions[i].options![o].optionController!.text.split(",").length ; j ++){
-                              //       options.add(
-                              //
-                              //           OptionQuestionnaireModel(
-                              //             option: forms[index].questions[i].options![o].optionController!.text.split(",")[j],
-                              //             isHide: forms[index].questions[i].options![o].isHide ?? false
-                              //           )
-                              //           );
-                              //     }
-                              //   }
-                              //   temp.add(QuestionairesItem(question:forms[index].questions[i].question ?? '',
-                              //       questionType:
-                              //       AppShared.getFormItemTypeByIndex(forms[index].questions[i].questionType ?? 1),
-                              //       isRequired:  forms[index].questions[i].isRequired ?? false,
-                              //       options:options,
-                              //     isHide:  forms[index].questions[i].isHide ?? false
-                              //   ));
-                              // }
-                              // Navigator.push(
-                              //     context,
-                              //     BasePageRoute(
-                              //         builder: (context) => DynamicForm(
-                              //           formName: data.allQuestionaires[index].formName ?? '',
-                              //           formItems:  temp,
-                              //
-                              //         )));
                               Navigator.push(
                                   context,
                                   BasePageRoute(
@@ -409,14 +377,15 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                         // customerName:forms[index].customerName,
                                         validLocation: forms[index].validLocation ?? false,
                                         surveyId: forms[index].id ?? '',
+                                        code: forms[index].code ?? 'لا يوجد كود للعرض',
                                         showSurveyId: forms[index].showSurveyId ?? false,
                                         questionnaireTime: forms[index].questionnaireTime ?? DateTime.now(),
                                         isForm: false ,
 
                                       )));
-                            }else{
-
-                            }
+                            // }else{
+                            //
+                            // }
                           },
                           child: PrimaryContainer(
 
@@ -467,7 +436,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                             const SizedBox(height: 3,),
                                             Text("  ${
                                                 (forms [index].showSurveyId ?? false)?
-                                                forms [index].id : ''}",
+                                                forms [index].code ?? 'لا يوجد كود للعرض' : ''}",
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.w500,
                                                   fontSize: 12,

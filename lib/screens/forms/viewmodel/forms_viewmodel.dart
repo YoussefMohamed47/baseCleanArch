@@ -12,6 +12,7 @@ import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
+import '../../../domain/model/from_model.dart';
 import '../../../domain/model/make_form_template/form_list.dart';
 import '../../../domain/repository/forms/forms_repo.dart';
 
@@ -69,6 +70,11 @@ class FormsViewModel extends BaseViewModel with FormsViewModelInput, FormsViewMo
     postDataToView();
   }
 
+
+  Future<FormModel> changeFormActiveStatus({required String id,required FormModel input}) async {
+    FormModel res = await formRepo.updateFormDetail(id: id,input: input);
+    return res;
+  }
   postDataToView() {
     if (!_formsStreamController.isClosed) {
       inputFormsInput.add(_model);

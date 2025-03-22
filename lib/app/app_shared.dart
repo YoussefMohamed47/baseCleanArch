@@ -125,7 +125,6 @@ class AppShared {
 
 
   static List<QuestionTypeModel> questionTypeList = [
-
     QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.LongText] ?? 0,
         "${SharedLocalization.getLocalization!().longText}",
         FormItemType.LongText
@@ -166,11 +165,25 @@ class AppShared {
         '${SharedLocalization.getLocalization!().location}',
         FormItemType.Location
     ),
-    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Location] ?? 10,
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.Client] ?? 10,  // Fix incorrect key
         '${SharedLocalization.getLocalization!().client}',
         FormItemType.Client
     ),
 
-
+    QuestionTypeModel(FormItemTypeEnum.toInt[FormItemType.ClientSignature] ?? 10,  // Fix incorrect key
+        '${SharedLocalization.getLocalization!().clientSignature}',
+        FormItemType.ClientSignature
+    ),
   ];
+
+// Getter to display Client first
+  static List<QuestionTypeModel> get sortedQuestionTypeList {
+    return [
+      // Get the client item first (if it exists)
+      ...questionTypeList.where((item) => item.questionType == FormItemType.Client),
+      // Then, get all other items
+      ...questionTypeList.where((item) => item.questionType != FormItemType.Client),
+    ];
+  }
+
 }

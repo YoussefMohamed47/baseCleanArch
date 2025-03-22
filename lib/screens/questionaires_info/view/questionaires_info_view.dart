@@ -412,6 +412,7 @@ import 'package:questionnaire/presentation/resources/base_page_route.dart';
 import 'package:questionnaire/presentation/resources/color_manager.dart';
 import 'package:questionnaire/screens/Questionaires/viewmodel/questionaires_viewmodel.dart';
 import 'package:questionnaire/screens/build_questionnaire_form/view/build_questionnaire_form_view.dart';
+import 'package:questionnaire/screens/questionaires_info/view/signature_widget.dart';
 import 'package:shared_module/Widget/app_scaffold.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'dart:io';
@@ -427,6 +428,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:shared_module/service/loader.service.dart';
 import 'package:shared_module/service/localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
+import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
 import '../../../app/di.dart';
 import '../../../domain/model/client_model.dart';
@@ -451,6 +453,7 @@ class QuestionairesInfoView extends StatefulWidget {
   final bool validLocation;
   final bool showSurveyId;
   final String surveyId;
+  final String? code;
   final DateTime questionnaireTime;
 
   final bool isForm;
@@ -463,6 +466,7 @@ class QuestionairesInfoView extends StatefulWidget {
   required this.showSurveyId,
   required this.questionnaireTime,
   required this.isForm,
+  required this.code,
   });
 // QuestionairesInfoViewModel
 
@@ -482,33 +486,59 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
   double? long;
   late List<Question> formItemsLocal;
 
+
+
   String fixJson(String jsonString) {
-    // Remove "creationTime" and its value
-    jsonString = jsonString.replaceAll(RegExp(r'creationTime:\s*[^,}]+[,}]'), '');
+    try {
+      // Remove "creationTime" and its value (with or without a trailing comma)
+      jsonString = jsonString.replaceAll(RegExp(r'"?creationTime"?:\s*"?.+?"?(,)?'), '');
 
-    return jsonString
-    // Ensure all keys are enclosed in double quotes
-        .replaceAllMapped(RegExp(r'(\w+):'), (match) => '"${match[1]}":')
-    // Ensure values are wrapped in double quotes, except for booleans, null, int, and double
-        .replaceAllMapped(RegExp(r':\s*([^",{}\[\]]+)([,}])'), (match) {
-      String value = match[1]!;
-      String separator = match[2]!;
+      // Ensure all keys are enclosed in double quotes
+      jsonString = jsonString.replaceAllMapped(
+          RegExp(r'(\b\w+\b)\s*:'),
+              (match) => '"${match[1]}":'
+      );
 
-      // Check if the value is a valid boolean, null, int, or double
-      if (value == "true" || value == "false" || value == "null" || RegExp(r'^-?\d+(\.\d+)?$').hasMatch(value)) {
-        return ': $value$separator'; // Keep booleans, null, ints, and doubles without quotes
-      }
+      // Ensure all values (except numbers, booleans, and null) are enclosed in double quotes
+      jsonString = jsonString.replaceAllMapped(
+          RegExp(r':\s*([^"\s\[\]{},]+)([,}])'),
+              (match) {
+            String value = match[1]!;
+            String separator = match[2]!;
 
-      return ': "$value"$separator'; // Wrap other values in quotes
-    })
-    // Handle empty values
-        .replaceAll(": ,", ': "",')
-        .replaceAll(":}", ': ""}')
-        .replaceAll(":]", ': ""]');
+            // Keep numbers, booleans, and null as they are
+            if (value == "true" || value == "false" || value == "null" || RegExp(r'^-?\d+(\.\d+)?$').hasMatch(value)) {
+              return ': $value$separator';
+            }
+
+            // Ensure UUIDs are treated as strings (UUID format: 8-4-4-4-12 hex digits)
+            if (RegExp(r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$').hasMatch(value)) {
+              return ': "$value"$separator';
+            }
+
+            return ': "$value"$separator'; // Wrap all other values in quotes
+          }
+      );
+
+      // Handle empty values properly
+      jsonString = jsonString
+          .replaceAll(": ,", ': "",')  // Replace `: ,` with `: ""`
+          .replaceAll(":}", ': ""}')   // Replace `:}` with `: ""}`
+          .replaceAll(":]", ': ""]');  // Replace `:]` with `: ""]`
+
+      return jsonString;
+    } catch (e) {
+      print("Error fixing JSON: $e");
+      return jsonString; // Return the original string if parsing fails
+    }
   }
+
+
+
   @override
   void didChangeDependencies() {
     formItemsLocal=_viewModel.surveyData.questions?.where((form)=>form.isHide==false).toList() ?? [];
+    //putClientQuestioninTop();
     super.didChangeDependencies();
   }
   final QuestionairesInfoViewModel _viewModel = instance<QuestionairesInfoViewModel>();
@@ -516,6 +546,17 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
   bool isLoading =false;
 
   FormModel currentSurvey = FormModel();
+
+  putClientQuestioninTop(){
+    formItemsLocal.sort((a, b) {
+      if (a.questionType == 10 && b.questionType != 10) {
+        return -1; // `a` comes first
+      } else if (a.questionType != 10 && b.questionType == 10) {
+        return 1; // `b` comes first
+      }
+      return 0; // Keep relative order
+    });
+  }
   @override
   void initState() {
     print("validLocation............ ${widget.validLocation}");
@@ -525,6 +566,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
       setState(() {});
        currentSurvey = await _viewModel.getQuestionaireQuestion(surveyId: widget.surveyId);
      formItemsLocal=currentSurvey.questions?.where((form)=>form.isHide==false).toList() ?? [];
+      //putClientQuestioninTop();
       isLoading =false;
       setState(() {});
     });
@@ -576,6 +618,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 // ${SharedLocalization.getLocalization!().survey}
       AppScaffold(
         pageTitle: widget.formName,
+      withDrawer: false,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14.0),
 
@@ -608,21 +651,21 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 
                     // SizedBox(height: 22,),
 
-                    Container(
-                      width: double.infinity,
-
-                      decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3)
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
-                        child: Text(
-                          "${SharedLocalization
-                              .getLocalization!().surveyFormName} : ${widget.formName}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
+                    // Container(
+                    //   width: double.infinity,
+                    //
+                    //   decoration: BoxDecoration(
+                    //       color: Colors.grey.withOpacity(0.3)
+                    //   ),
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                    //     child: Text(
+                    //       "${SharedLocalization
+                    //           .getLocalization!().surveyFormName} : ${widget.formName}",
+                    //       style: const TextStyle(fontWeight: FontWeight.bold),
+                    //     ),
+                    //   ),
+                    // ),
 
 
 
@@ -637,7 +680,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
                         child: Text(
-                          "${SharedLocalization.getLocalization!().surveyNumber} : ${widget.surveyId}",
+                          "${SharedLocalization.getLocalization!().surveyNumber} : ${widget.code}",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -651,16 +694,17 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                       width: double.infinity,
 
                       decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3)
+                          color: Colors.white
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
                         child: Text(
+                          // SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
                           "${SharedLocalization
                               .getLocalization!().surveyDate} : ${
-                              DateFormat('dd-MM-yyyy').format(widget.questionnaireTime)}          ${SharedLocalization
+                              AppConsts.dateFormat.format(widget.questionnaireTime)} \n ${SharedLocalization
                               .getLocalization!().surveyTime} : ${
-                              DateFormat('hh:mm a').format(widget.questionnaireTime)} ",
+                              DateFormat('HH:mm').format(widget.questionnaireTime)} ",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -987,6 +1031,9 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 if (value != null && value.length > 50) {
                   return SharedLocalization.getLocalization!().short_error;
                 }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
+                }
                 return null;
               },
               onChanged: (String? value){
@@ -1029,6 +1076,9 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 if (formItem.isRequired && value?.isEmpty == true) {
                   return SharedLocalization.getLocalization!().filedRequired;
                 }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
+                }
                 return null;
               },
               onChanged: (String? value){
@@ -1040,7 +1090,6 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
       case FormItemType.SingleChoice:
         List<DropdownMenuItem<Option>> dropdownItems = [];
-
         if (!formItem.isRequired) {
           dropdownItems.add(
             DropdownMenuItem<Option>(
@@ -1049,8 +1098,6 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             ),
           );
         }
-
-
         formItem.options ??= [];
         List<Option> options = formItem.options!
             .where((option) => option.isHide == false) // Filter hidden options
@@ -1070,11 +1117,18 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
         // formItem.answer="39";
         Option? selectedOption;
-        if(formItem.answer != '' && formItem.answer != null){
-           selectedOption = options.firstWhere((opt)=> opt.id==int.parse(formItem.answer) );
+        print("formItem.answer::::::::: ${formItem.answer} ");
+        if (formItem.answer != '' && formItem.answer != null) {
+          selectedOption = options.firstWhere(
+                (opt) => opt.id == int.tryParse(formItem.answer ?? ''),
+            orElse: () => Option(id: -1, option: ''), // Provide a default invalid Option
+          );
+
+          // If a default option was used, set selectedOption to null
+          if (selectedOption.id == -1) {
+            selectedOption = null;
+          }
         }
-
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1097,18 +1151,20 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
               onChanged: (value) {
                 _formData[formItem.question] = value;
                 formItem.answer=value?.id?.toString();
+                print(" formItem.answer>>>>>>> ${ formItem.answer}");
               },
               validator: (value) {
                 if (formItem.isRequired && value == null) {
                   return SharedLocalization.getLocalization!().pleaseSelectOption;
+                }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
                 }
                 return null;
               },
             ),
           ],
         );
-
-
       case FormItemType.MultiChoice:
         formItem.options ??= [];
         List<String> options = formItem.options!
@@ -1116,11 +1172,13 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             .map((option) => option.option ?? '') // Extract the option string
             .where((option) => option.trim().isNotEmpty) // Remove empty options
             .toList();
-
         return FormField<List<String>>(
           validator: (value) {
             if (formItem.isRequired && (value == null || value.isEmpty)) {
               return SharedLocalization.getLocalization!().pleaseSelectOption; // Show error message
+            }
+            if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+              return SharedLocalization.getLocalization!().filedRequired; // Error message
             }
             return null; // No error
           },
@@ -1174,10 +1232,6 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             );
           },
         );
-
-
-
-
       case FormItemType.Number:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1207,6 +1261,9 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 if (value != null && int.tryParse(value) == null) {
                   return SharedLocalization.getLocalization!().validNumber;
                 }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
+                }
                 return null;
               },
               onChanged: (String? value){
@@ -1219,12 +1276,10 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
       case FormItemType.Float:
         TextEditingController controller =
-
         TextEditingController(text:
         formItem.answer == null || formItem.answer == ""?
         "00.00": formItem.answer );
         FocusNode focusNode = FocusNode();
-
         focusNode.addListener(() {
           if (!focusNode.hasFocus) {
             // Convert to decimal format when losing focus
@@ -1236,7 +1291,6 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
             }
           }
         });
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -1268,6 +1322,9 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 if (double.tryParse(value ?? '') == null) {
                   return SharedLocalization.getLocalization!().validNumber;
                 }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
+                }
                 return null;
               },
               onTap: () {
@@ -1295,19 +1352,15 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
           ],
         );
       case FormItemType.Date:
-
         if(formItem.answer!= null && formItem.answer != ''){
           _formData[formItem.question] =  DateTime.parse(formItem.answer);
         }
-
-
       // Create a controller for the text field
         TextEditingController dateController = TextEditingController(
           text: _formData[formItem.question] != null
               ? (_formData[formItem.question] as DateTime).toLocal().toString().split(' ')[0]
               : '',
         );
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -1366,6 +1419,9 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                 if (formItem.isRequired && value!.isEmpty) {
                   return SharedLocalization.getLocalization!().filedRequired;
                 }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
+                }
                 return null;
               },
             ),
@@ -1373,19 +1429,17 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
       case FormItemType.Time:
       // Create a controller for the text field
-print("formItem.answer ${formItem.answer}");
+       print("formItem.answer ${formItem.answer}");
         if(formItem.answer!= null && formItem.answer != ''){
           _formData[formItem.question] =
               stringToTimeOfDay(formItem.answer);
 
         }
-
         TextEditingController timeController = TextEditingController(
           text: _formData[formItem.question] != null
               ? (_formData[formItem.question] as TimeOfDay).format(context)
               : '',
         );
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -1444,6 +1498,9 @@ print("formItem.answer ${formItem.answer}");
                 if (formItem.isRequired && value!.isEmpty) {
                   return SharedLocalization.getLocalization!().filedRequired;
                 }
+                if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                  return SharedLocalization.getLocalization!().filedRequired; // Error message
+                }
                 return null;
               },
             ),
@@ -1457,13 +1514,14 @@ print("formItem.answer ${formItem.answer}");
         if (formItem.answer != null && formItem.answer!.isNotEmpty) {
           _formData[formItem.question] = formItem.answer;
         }
-
         // Create a ValueNotifier to track location updates
         ValueNotifier<String?> locationNotifier = ValueNotifier<String?>(_formData[formItem.question]);
-
         return FormField<String>(
           validator: (value) {
-            if (formItem.isRequired && (value == null || value.isEmpty)) {
+            if (formItem.isRequired && (value== null || value.isEmpty)) {
+              return SharedLocalization.getLocalization!().filedRequired; // Error message
+            }
+            if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
               return SharedLocalization.getLocalization!().filedRequired; // Error message
             }
             return null;
@@ -1588,17 +1646,15 @@ print("formItem.answer ${formItem.answer}");
             );
           },
         );
-
-
-
-
       case FormItemType.Client:
         CustomerOutputModel answer;
-
         if(formItem.answer != null &&formItem.answer != ''){
-         selectedClient =
-           CustomerOutputModel.fromJson(json.decode(fixJson(formItem.answer.toString())));
-         // print("selectedClient..... ${selectedClient?.id}");
+
+          // Parse JSON to Map
+          // Map<String, dynamic> jsonMap = jsonDecode(formItem.answer.toString());
+          // Map<String, dynamic> jsonMap = jsonDecode(formItem.answer);
+
+         selectedClient = CustomerOutputModel.fromJson(jsonDecode(formItem.answer));
         }
         return Container(
           decoration: BoxDecoration(
@@ -1635,113 +1691,29 @@ print("formItem.answer ${formItem.answer}");
               );
 
               if (result != null) {
+                //formItem.answer = jsonEncode(result?.toJson());
                 selectedClient = result;
                 (context as Element).markNeedsBuild(); // Refresh UI without setState
               }
               print("id ..... ${result?.id}");
-              formItem.answer = result?.toJson().toString();
+               formItem.answer =  jsonEncode(result?.toJson());
                  // "${result?.id},${result?.customerName},${result?.customerNameEn},";
             },
             validator: (value) {
               if (formItem.isRequired && selectedClient == null) {
                 return SharedLocalization.getLocalization!().pleaseSelectAClient;
               }
+              if (formItem.isRequired && (formItem.answer == null || formItem.answer.isEmpty)) {
+                return SharedLocalization.getLocalization!().filedRequired; // Error message
+              }
               return null;
             },
           ),
         );
+      case FormItemType.ClientSignature:
+        return SignatureWidget(
 
-
-
-
-
-    //   Column(
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   mainAxisAlignment: MainAxisAlignment.start,
-    //   children: [
-    //     // Text(formItem.question,style: const TextStyle(
-    //     //     fontWeight: FontWeight.bold),),
-    //     // SizedBox(height: 12,),
-    //     GestureDetector(
-    //       onTap: () async {
-    //         final picker = ImagePicker();
-    //         final XFile? image = await showModalBottomSheet<XFile>(
-    //           context: context,
-    //           builder: (context) => Column(
-    //             mainAxisSize: MainAxisSize.min,
-    //             children: [
-    //               ListTile(
-    //                 leading: const Icon(Icons.camera_alt),
-    //                 title:  Text(SharedLocalization.getLocalization!().from_camera),
-    //                 onTap: () async {
-    //                   final cameraImage = await picker.pickImage(source: ImageSource.camera);
-    //                   Navigator.pop(context, cameraImage);
-    //                 },
-    //               ),
-    //               ListTile(
-    //                 leading: const Icon(Icons.photo_library),
-    //                 title:  Text(SharedLocalization.getLocalization!().from_gallery),
-    //                 onTap: () async {
-    //                   final galleryImage = await picker.pickImage(source: ImageSource.gallery);
-    //                   Navigator.pop(context, galleryImage);
-    //                 },
-    //               ),
-    //             ],
-    //           ),
-    //         );
-    //
-    //         if (image != null) {
-    //           setState(() {
-    //             _formData[formItem.question] = image.path;
-    //           });
-    //         }
-    //       },
-    //       child: Container(
-    //         height: 150,
-    //         width: double.infinity,
-    //         decoration: BoxDecoration(
-    //           border: Border.all(width: 0.7),
-    //           borderRadius: BorderRadius.circular(5),
-    //           color: Colors.white,
-    //         ),
-    //         child: _formData[formItem.question] == null
-    //             ? Center(
-    //           child: Column(
-    //             mainAxisAlignment: MainAxisAlignment.center,
-    //             children:  [
-    //               Icon(Icons.add_photo_alternate_outlined, size: 50, color: Colors.grey),
-    //               Text(
-    //                 "${SharedLocalization.getLocalization!().tap_upload_image}",
-    //                 style: TextStyle(color: Colors.grey),
-    //               ),
-    //             ],
-    //           ),
-    //         )
-    //             : Image.file(
-    //           File(_formData[formItem.question]!),
-    //           fit: BoxFit.cover,
-    //         ),
-    //       ),
-    //     ),
-    //     if (formItem.isRequired && (_formData[formItem.question]?.isEmpty ?? true))
-    //       const Padding(
-    //         padding: EdgeInsets.only(top: 8.0),
-    //         child: Text(
-    //           SharedLocalization.getLocalization!().filedRequired,
-    //           style: TextStyle(color: Colors.red, fontSize: 12),
-    //         ),
-    //       ),
-    //   ],
-    // );
-    // 1- permission for ask photo / location
-    // 2- get loction for form on save
-    // 3- serail number for each form
-    // display can show serail number or not
-    // drop down to select client for form for back end
-    // filter form name / client / seiral number / third date
-    //permission for form can show forms
-    // can add form or not
-    // can edit form or not
+        question:formItem, formKey: _formKey,);
 
       default:
         return Container(

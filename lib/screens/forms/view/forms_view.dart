@@ -10,6 +10,7 @@ import 'package:shared_module/Widget/app_scaffold.dart';
 import 'package:shared_module/Widget/no_items_found_indicator.wdiget.dart';
 import 'package:shared_module/Widget/primary_container.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
+import 'package:shared_module/service/confirmation.service.dart';
 import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
 import 'package:uuid/uuid.dart';
@@ -148,7 +149,8 @@ class _FormsScreenState extends State<FormsScreen> {
                               //
                               //
                               //         )));
-                            }else{
+                            }
+                            else{
 
                               print("form id : ${allForms.items?[index].id}");
                               await  Navigator.of(context).push(MaterialPageRoute(
@@ -193,13 +195,14 @@ class _FormsScreenState extends State<FormsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           SizedBox(
-                                            width: 250,
+                                            width: 200,
                                             child: Text(
                                               "${index + 1} - ${forms.items?[index].formName ?? ''}",
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
+                                                overflow: TextOverflow.ellipsis,
                                                 fontSize: 16,
                                               ),
                                             ),
@@ -216,31 +219,76 @@ class _FormsScreenState extends State<FormsScreen> {
                                       ),
                                     ],
                                   ),
-                                  widget.isQuestionnaires
-                                      ? SizedBox()
-                                      : GestureDetector(
-                                    onTap: () async {
 
-                                      print("form id : ${allForms.items?[index].id}");
-                                      await  Navigator.of(context).push(MaterialPageRoute(
-                                          builder: (ctx) =>  BuildFormsScreens(
-                                            form: LocalFormModel(
-                                              id: allForms.items?[index].id ?? '',
-                                              formName: allForms.items?[index].formName,
-                                              validLocation: allForms.items?[index].validLocation,
-                                              showSurveyId: allForms.items?[index].showSurveyId,
-                                              questions: []),
-                                            isEdit: true,
-                                            formIndex: index,
-                                          )));
-                                      getData();
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    widget.isQuestionnaires
+                                        ? SizedBox()
+                                        : GestureDetector(
+                                         onTap: () async {
 
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
-                                      child: Icon(Icons.edit, color: AppTheme.orangeColor),
+
+
+                                           ConfirmationService.showPopupDialog(
+                                               context: context,
+                                               message: SharedLocalization
+                                                   .getLocalization!().cancelFormMsg)
+                                               .then((isPostData) async {
+                                             if (isPostData == true) {
+                                                 print("form id : ${allForms.items?[index].id}");
+                                               print("form id : ${allForms.items?[index].id}");
+                                               print("forms.items?[index].isActive : ${forms.items?[index].isActive}");
+
+                                               if(allForms.items?[index] != null){
+                                                 allForms.items![index].isActive = !(allForms.items?[index].isActive ?? false);
+                                                 FormModel res= await  _viewModel.changeFormActiveStatus(id: allForms.items?[index].id ?? '', input: allForms.items![index]);
+                                                 allForms.items?.removeAt(index);
+                                                 setState(() {});
+                                               }
+                                             }
+                                           });
+
+                                                                              },
+                                                                              child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+                                        child: Icon(Icons.delete_forever_outlined, color:
+                                        (forms.items?[index].isActive ?? true)?
+
+                                        AppTheme.orangeColor:
+                                        AppTheme.secondaryColor
+                                        ),
+                                                                              ),
+                                                                            ),
+
+
+                                    widget.isQuestionnaires
+                                        ? SizedBox()
+                                        : GestureDetector(
+                                      onTap: () async {
+
+                                        print("form id : ${allForms.items?[index].id}");
+                                        await  Navigator.of(context).push(MaterialPageRoute(
+                                            builder: (ctx) =>  BuildFormsScreens(
+                                              form: LocalFormModel(
+                                                  id: allForms.items?[index].id ?? '',
+                                                  formName: allForms.items?[index].formName,
+                                                  validLocation: allForms.items?[index].validLocation,
+                                                  showSurveyId: allForms.items?[index].showSurveyId,
+                                                  questions: []),
+                                              isEdit: true,
+                                              formIndex: index,
+                                            )));
+                                        getData();
+
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+                                        child: Icon(Icons.edit, color: AppTheme.orangeColor),
+                                      ),
                                     ),
-                                  ),
+                                  ],
+                                )
                                 ],
                               ),
                             ),

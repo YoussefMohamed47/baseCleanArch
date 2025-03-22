@@ -103,14 +103,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                               }
                             },
                             items: List.generate(
-                              AppShared.questionTypeList.length,
+                              AppShared.sortedQuestionTypeList.length,
                                   (index) => DropdownMenuItem(
                                 child: Text(
-                                  AppShared.questionTypeList[index].name,
+                                  AppShared.sortedQuestionTypeList[index].name,
                                   style: TextStyle(
                                       color: Colors.black, fontSize: 16),
                                 ),
-                                value: AppShared.questionTypeList[index].questionType,
+                                value: AppShared.sortedQuestionTypeList[index].questionType,
                               ),
                             )),
                       ),
@@ -992,7 +992,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
                                                   },
                                                 ),
-
+                                                (options?[index].isUsed  ?? false) ?
+                                                const SizedBox():
                                                 GestureDetector(
                                                   child: Padding(
                                                     padding: EdgeInsets.only(left: 8.0, right: 1),
@@ -1107,7 +1108,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
   Widget build(BuildContext context) {
     return  Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: AppColors.whiteColor,
+     // backgroundColor: AppColors.whiteColor,
       body: SafeArea(
         child:
         StreamBuilder<MakeFormTemplateUseCaseModel>(
@@ -1231,6 +1232,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                               },
                               child: Card(
                                 elevation: 4,
+                                color: AppColors.whiteColor,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
@@ -1275,6 +1277,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                   });
                                                 },
                                               ),
+                                              _viewModel.dynamicFormModel.questions[index].isUsed ?
+                                              SizedBox():
                                               IconButton(
                                                 icon: Icon(Icons.close, color: Colors.redAccent),
                                                 onPressed: () {
