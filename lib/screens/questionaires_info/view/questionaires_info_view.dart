@@ -425,6 +425,7 @@ import 'package:sembast/sembast.dart';
 import 'package:shared_module/constants/app.consts.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_module/service/confirmation.service.dart';
 import 'package:shared_module/service/loader.service.dart';
 import 'package:shared_module/service/localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
@@ -616,302 +617,322 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
     return
 
 // ${SharedLocalization.getLocalization!().survey}
-      AppScaffold(
-        pageTitle: widget.formName,
-      withDrawer: false,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+      WillPopScope(
+        onWillPop: () async{
+          //  if(widget.isEdit){
+          bool isCancelConfirm =
+              await ConfirmationService.showPopIfEditDialog(
+                  context: context) ??
+                  false;
+          if (!isCancelConfirm) {
+            return false;
+          }
+          return true;
+          //  }
+          //return true;
+        },
+        child: AppScaffold(
+          pageTitle: widget.formName,
+        withDrawer: false,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14.0),
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // widget.customerName?.name == null ?
-                    // const SizedBox():
-                    // Container(
-                    //   width: double.infinity,
-                    //   decoration: BoxDecoration(
-                    //       color: Colors.grey.withOpacity(0.3)
-                    //   ),
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
-                    //     child: Text(
-                    //       "${SharedLocalization
-                    //           .getLocalization!().customerName} : ${widget.customerName?.name ?? ''}",
-                    //       style: const TextStyle(fontWeight: FontWeight.bold),
-                    //     ),
-                    //   ),
-                    // ),
-
-                    // SizedBox(height: 22,),
-
-                    // Container(
-                    //   width: double.infinity,
-                    //
-                    //   decoration: BoxDecoration(
-                    //       color: Colors.grey.withOpacity(0.3)
-                    //   ),
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
-                    //     child: Text(
-                    //       "${SharedLocalization
-                    //           .getLocalization!().surveyFormName} : ${widget.formName}",
-                    //       style: const TextStyle(fontWeight: FontWeight.bold),
-                    //     ),
-                    //   ),
-                    // ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
 
+              Expanded(child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // widget.customerName?.name == null ?
+                      // const SizedBox():
+                      // Container(
+                      //   width: double.infinity,
+                      //   decoration: BoxDecoration(
+                      //       color: Colors.grey.withOpacity(0.3)
+                      //   ),
+                      //   child: Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                      //     child: Text(
+                      //       "${SharedLocalization
+                      //           .getLocalization!().customerName} : ${widget.customerName?.name ?? ''}",
+                      //       style: const TextStyle(fontWeight: FontWeight.bold),
+                      //     ),
+                      //   ),
+                      // ),
 
-                    SizedBox(height: widget.showSurveyId?22:0,),
-                    widget.showSurveyId?
-                    Container(
-                      width: double.infinity,
+                      // SizedBox(height: 22,),
 
-                      decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3)
+                      // Container(
+                      //   width: double.infinity,
+                      //
+                      //   decoration: BoxDecoration(
+                      //       color: Colors.grey.withOpacity(0.3)
+                      //   ),
+                      //   child: Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                      //     child: Text(
+                      //       "${SharedLocalization
+                      //           .getLocalization!().surveyFormName} : ${widget.formName}",
+                      //       style: const TextStyle(fontWeight: FontWeight.bold),
+                      //     ),
+                      //   ),
+                      // ),
+
+
+
+                      SizedBox(height:
+
+                      widget.isForm?0:
+                      widget.showSurveyId?22:0,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
-                        child: Text(
-                          "${SharedLocalization.getLocalization!().surveyNumber} : ${widget.code}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                      widget.isForm?const SizedBox():
+                      widget.showSurveyId?
+                      Container(
+                        width: double.infinity,
+
+                        decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3)
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                          child: Text(
+                            "${SharedLocalization.getLocalization!().surveyNumber} : ${widget.code}",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ):const SizedBox(),
+
+
+
+                      const SizedBox(height: 22,),
+
+                      Container(
+                        width: double.infinity,
+
+                        decoration: BoxDecoration(
+                            color: Colors.white
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                          child: Text(
+                            // SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
+                            "${SharedLocalization
+                                .getLocalization!().surveyDate} : ${
+                                AppConsts.dateFormat.format(widget.questionnaireTime)} \n ${SharedLocalization
+                                .getLocalization!().surveyTime} : ${
+                                DateFormat('HH:mm').format(widget.questionnaireTime)} ",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ):const SizedBox(),
-
-
-
-                    const SizedBox(height: 22,),
-
-                    Container(
-                      width: double.infinity,
-
-                      decoration: BoxDecoration(
-                          color: Colors.white
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                      const SizedBox(height: 12,),
+                      Divider(color: ColorManager.black,),
+                      const SizedBox(height: 12,),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         child: Text(
-                          // SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
                           "${SharedLocalization
-                              .getLocalization!().surveyDate} : ${
-                              AppConsts.dateFormat.format(widget.questionnaireTime)} \n ${SharedLocalization
-                              .getLocalization!().surveyTime} : ${
-                              DateFormat('HH:mm').format(widget.questionnaireTime)} ",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                              .getLocalization!().survey}",
+                          style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 22),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12,),
-                    Divider(color: ColorManager.black,),
-                    const SizedBox(height: 12,),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Text(
-                        "${SharedLocalization
-                            .getLocalization!().survey}",
-                        style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 22),
+                      const SizedBox(height: 12,),
+                      isLoading?SizedBox():
+                      formItemsLocal.isEmpty?
+                          Text(
+                            "${SharedLocalization
+                                .getLocalization!().survey_question_number_error}",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ):
+                      Form(
+                        key: _formKey,
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: formItemsLocal.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            Question currentFormItem = formItemsLocal[index];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentFormItem.question ?? '',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(
+                                  height: 12,
+                                ),
+                                // Render input field based on question type
+                                renderInputField(currentFormItem),
+                                SizedBox(height: 20),
+                              ],
+                            );
+                          }, separatorBuilder: (BuildContext context, int index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Divider(thickness: 1, height: 3,color: Colors.grey.withOpacity(0.3),),
+                            );
+                        },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12,),
-                    isLoading?SizedBox():
-                    formItemsLocal.isEmpty?
-                        Text(
-                          "${SharedLocalization
-                              .getLocalization!().survey_question_number_error}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ):
-                    Form(
-                      key: _formKey,
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: formItemsLocal.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          Question currentFormItem = formItemsLocal[index];
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                currentFormItem.question ?? '',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              // Render input field based on question type
-                              renderInputField(currentFormItem),
-                              SizedBox(height: 20),
-                            ],
-                          );
-                        }, separatorBuilder: (BuildContext context, int index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Divider(thickness: 1, height: 3,color: Colors.grey.withOpacity(0.3),),
-                          );
-                      },
-                      ),
-                    ),
 
 
-                    const SizedBox(height: 62,),
-                  ],
+                      const SizedBox(height: 62,),
+                    ],
+                  ),
                 ),
-              ),
-            )),
-            // Container(
-            //   width: double.infinity,
-            //   height: 51,
-            //   child: Row(
-            //     crossAxisAlignment: CrossAxisAlignment.center,
-            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     children: [
-            //       ElevatedButton(
-            //         onPressed:  () {
-            //           Navigator.push(
-            //               context,
-            //               BasePageRoute(
-            //                   builder: (context) => DynamicForm(
-            //                     formName: widget.formName ,
-            //                     formItems:  formItemsLocal,
-            //                     validLocation: widget.validLocation,
-            //                   )));
-            //         }
-            //         ,
-            //         child: Container(
-            //             width: MediaQuery.of(context).size.width /3.3,
-            //             child: Center(child: Text('${SharedLocalization.getLocalization!().next}'))),
-            //       ),
-            //       ElevatedButton(
-            //         onPressed:
-            //              () {
-            //           Navigator.pop(context);
-            //         }
-            //             ,
-            //         child: Container(
-            //             width: MediaQuery.of(context).size.width /3.3,
-            //             child: Center(child: Text('${SharedLocalization.getLocalization!().cancel}'))),
-            //       ),
-            //     ],
-            //   ),
-            // )
+              )),
+              // Container(
+              //   width: double.infinity,
+              //   height: 51,
+              //   child: Row(
+              //     crossAxisAlignment: CrossAxisAlignment.center,
+              //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //     children: [
+              //       ElevatedButton(
+              //         onPressed:  () {
+              //           Navigator.push(
+              //               context,
+              //               BasePageRoute(
+              //                   builder: (context) => DynamicForm(
+              //                     formName: widget.formName ,
+              //                     formItems:  formItemsLocal,
+              //                     validLocation: widget.validLocation,
+              //                   )));
+              //         }
+              //         ,
+              //         child: Container(
+              //             width: MediaQuery.of(context).size.width /3.3,
+              //             child: Center(child: Text('${SharedLocalization.getLocalization!().next}'))),
+              //       ),
+              //       ElevatedButton(
+              //         onPressed:
+              //              () {
+              //           Navigator.pop(context);
+              //         }
+              //             ,
+              //         child: Container(
+              //             width: MediaQuery.of(context).size.width /3.3,
+              //             child: Center(child: Text('${SharedLocalization.getLocalization!().cancel}'))),
+              //       ),
+              //     ],
+              //   ),
+              // )
 
-          ],
+            ],
+          ),
         ),
-      ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            // log("formItemsLocal ${json.encode(formItemsLocal)}");
-            if (_formKey.currentState!.validate()) {
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              // log("formItemsLocal ${json.encode(formItemsLocal)}");
+              if (_formKey.currentState!.validate()) {
 
-              print("widget.isForm :::: ${widget.isForm}");
+                print("widget.isForm :::: ${widget.isForm}");
 
-              if(widget.isForm){
+                if(widget.isForm){
 
 
-                if((widget.validLocation)){
-                  print("wkkkkkkkkkkk ${widget.surveyId}");
-                  LoaderService.show();
-                  currentSurvey.id =widget.surveyId;
-                  Future.microtask(() async {
-                    try {
-                      Map<String, double> coordinates = await getCurrentLatLon();
-                      print("Latitude: ${coordinates['latitude']}");
-                      print("Longitude: ${coordinates['longitude']}");
-                      double? lat=coordinates['latitude'] ;
-                      double? long=coordinates['longitude'];
+                  if((widget.validLocation)){
+                    print("wkkkkkkkkkkk ${widget.surveyId}");
+                    LoaderService.show();
+                    currentSurvey.id =widget.surveyId;
+                    Future.microtask(() async {
+                      try {
+                        Map<String, double> coordinates = await getCurrentLatLon();
+                        print("Latitude: ${coordinates['latitude']}");
+                        print("Longitude: ${coordinates['longitude']}");
+                        double? lat=coordinates['latitude'] ;
+                        double? long=coordinates['longitude'];
 
-                      _formKey.currentState!.save();
-                      // Do something with the form data
-                      print(_formData);
-                      currentSurvey.questions=formItemsLocal;
-                      currentSurvey.lat=lat.toString();
-                      currentSurvey.lng=long.toString();
-                      currentSurvey.id=null;
-                      currentSurvey.isTemplate=false;
-                    FormModel res =  await _viewModel.addSurvey(currentSurvey);
+                        _formKey.currentState!.save();
+                        // Do something with the form data
+                        print(_formData);
+                        currentSurvey.questions=formItemsLocal;
+                        currentSurvey.lat=lat.toString();
+                        currentSurvey.lng=long.toString();
+                        currentSurvey.id=null;
+                        currentSurvey.isTemplate=false;
+                      FormModel res =  await _viewModel.addSurvey(currentSurvey);
+                      // allQuestionaires.add(res);
+                        LoaderService.hide();
+                        filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
+                        setState(() {
+
+                        });
+                        Navigator.pop(context);
+
+                      } catch (e) {
+                        print("Error: $e");
+                      }
+                    });
+                  }else{
+                    _formKey.currentState!.save();
+                    // Do something with the form data
+                    print(_formData);
+                    log(formItemsLocal.toString());
+                    currentSurvey.questions=formItemsLocal;
+                    currentSurvey.id=null;
+                    currentSurvey.isTemplate=false;
+                   FormModel res = await _viewModel.addSurvey(currentSurvey);
+                    LoaderService.hide();
                     // allQuestionaires.add(res);
-                      LoaderService.hide();
-                      filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
-                      setState(() {
+                    //
+                    filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
+                    setState(() {});
+                    Navigator.pop(context);
 
-                      });
-                      Navigator.pop(context);
-
-                    } catch (e) {
-                      print("Error: $e");
-                    }
-                  });
+                  }
                 }else{
-                  _formKey.currentState!.save();
-                  // Do something with the form data
-                  print(_formData);
-                  log(formItemsLocal.toString());
-                  currentSurvey.questions=formItemsLocal;
-                  currentSurvey.id=null;
-                  currentSurvey.isTemplate=false;
-                 FormModel res = await _viewModel.addSurvey(currentSurvey);
-                  LoaderService.hide();
-                  // allQuestionaires.add(res);
-                  //
-                  filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
-                  setState(() {});
-                  Navigator.pop(context);
+                  if((widget.validLocation)){
+                    print("wkkkkkkkkkkk ${widget.surveyId}");
+                    LoaderService.show();
+                    currentSurvey.id =widget.surveyId;
+                    Future.microtask(() async {
+                      try {
+                        Map<String, double> coordinates = await getCurrentLatLon();
+                        print("Latitude: ${coordinates['latitude']}");
+                        print("Longitude: ${coordinates['longitude']}");
+                        double? lat=coordinates['latitude'] ;
+                        double? long=coordinates['longitude'];
 
+                        _formKey.currentState!.save();
+                        // Do something with the form data
+                        print(_formData);
+                        currentSurvey.questions=formItemsLocal;
+                        currentSurvey.lat=lat.toString();
+                        currentSurvey.lng=long.toString();
+
+                        await _viewModel.submitSurvey(currentSurvey);
+                        LoaderService.hide();
+                        Navigator.pop(context);
+                      } catch (e) {
+                        print("Error: $e");
+                      }
+                    });
+                  }else{
+                    _formKey.currentState!.save();
+                    // Do something with the form data
+                    print(_formData);
+                    log(formItemsLocal.toString());
+                    currentSurvey.questions=formItemsLocal;
+                    await _viewModel.submitSurvey(currentSurvey);
+                    LoaderService.hide();
+                    Navigator.pop(context);
+                  }
                 }
-              }else{
-                if((widget.validLocation)){
-                  print("wkkkkkkkkkkk ${widget.surveyId}");
-                  LoaderService.show();
-                  currentSurvey.id =widget.surveyId;
-                  Future.microtask(() async {
-                    try {
-                      Map<String, double> coordinates = await getCurrentLatLon();
-                      print("Latitude: ${coordinates['latitude']}");
-                      print("Longitude: ${coordinates['longitude']}");
-                      double? lat=coordinates['latitude'] ;
-                      double? long=coordinates['longitude'];
 
-                      _formKey.currentState!.save();
-                      // Do something with the form data
-                      print(_formData);
-                      currentSurvey.questions=formItemsLocal;
-                      currentSurvey.lat=lat.toString();
-                      currentSurvey.lng=long.toString();
 
-                      await _viewModel.submitSurvey(currentSurvey);
-                      LoaderService.hide();
-                      Navigator.pop(context);
-                    } catch (e) {
-                      print("Error: $e");
-                    }
-                  });
-                }else{
-                  _formKey.currentState!.save();
-                  // Do something with the form data
-                  print(_formData);
-                  log(formItemsLocal.toString());
-                  currentSurvey.questions=formItemsLocal;
-                  await _viewModel.submitSurvey(currentSurvey);
-                  LoaderService.hide();
-                  Navigator.pop(context);
-                }
               }
+            },
+            child: Icon(Icons.save),
+          ),
 
-
-            }
-          },
-          child: Icon(Icons.save),
-        ),
-
-    );
+            ),
+      );
   }
 
 

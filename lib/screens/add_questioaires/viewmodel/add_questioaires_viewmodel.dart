@@ -12,6 +12,7 @@ import '../../../app/app_prefs.dart';
 import '../../../app/di.dart';
 import 'package:questionnaire/presentation/base/baseviewmodel.dart';
 
+import '../../../domain/model/from_model.dart';
 import '../../../domain/model/make_form_template/form_list.dart';
 import '../../../domain/repository/forms/forms_repo.dart';
 import '../../forms/viewmodel/forms_viewmodel.dart';
@@ -63,6 +64,8 @@ class AddQuestionairesViewModel extends BaseViewModel with AddQuestionairesViewM
     //  await getTermsAndConditions();
     allForms=FormListModel();
     allForms = await formRepo.getForm(isTemplate: true);
+    List<FormModel>? items = allForms.items?.where((form)=> form.isActive==true).toList() ?? [];
+    allForms.items=items;
     isLoading = false;
     postDataToView();
   }

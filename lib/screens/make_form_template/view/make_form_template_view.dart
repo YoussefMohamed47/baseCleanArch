@@ -13,6 +13,7 @@ import 'package:questionnaire/screens/make_form_template/viewmodel/make_form_tem
 import 'package:questionnaire/utils/colors/appColors.dart';
 import 'package:shared_module/Widget/toaster.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
+import 'package:shared_module/service/confirmation.service.dart';
 import 'package:shared_module/service/custom.validators.dart';
 import 'package:shared_module/theme/app-input-decoration.theme.dart';
 import 'package:shared_module/theme/app.theme.dart';
@@ -1106,444 +1107,459 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
   }
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      resizeToAvoidBottomInset: true,
-     // backgroundColor: AppColors.whiteColor,
-      body: SafeArea(
-        child:
-        StreamBuilder<MakeFormTemplateUseCaseModel>(
-            stream: _viewModel.outputMakeFormTemplateContent,
-            builder: (context, snapshot) {
-              MakeFormTemplateUseCaseModel? data = snapshot.data;
-              return
-                data != null ?
-                SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 32,),
+    return  WillPopScope(
+      onWillPop: () async{
+      //  if(widget.isEdit){
+          bool isCancelConfirm =
+              await ConfirmationService.showPopIfEditDialog(
+                  context: context) ??
+                  false;
+          if (!isCancelConfirm) {
+            return false;
+          }
+          return true;
+      //  }
+      //return true;
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+       // backgroundColor: AppColors.whiteColor,
+        body: SafeArea(
+          child:
+          StreamBuilder<MakeFormTemplateUseCaseModel>(
+              stream: _viewModel.outputMakeFormTemplateContent,
+              builder: (context, snapshot) {
+                MakeFormTemplateUseCaseModel? data = snapshot.data;
+                return
+                  data != null ?
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(height: 32,),
 
-                      Form(
-                        key: _formKey,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Column(
+                        Form(
+                          key: _formKey,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Column(
 
-                            children: [
-                              TextFormField(
-                                controller: _viewModel.formName,
-                                onTapOutside: (PointerDownEvent v){
-                                  FocusScope.of(context).requestFocus(new FocusNode());
-                                },
-                                decoration:
-                                AppInputDecorationTheme.standardInput(
-                                  label: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    child: Text(
-                                      SharedLocalization
-                                          .getLocalization!().surveyFormName,
+                              children: [
+                                TextFormField(
+                                  controller: _viewModel.formName,
+                                  onTapOutside: (PointerDownEvent v){
+                                    FocusScope.of(context).requestFocus(new FocusNode());
+                                  },
+                                  decoration:
+                                  AppInputDecorationTheme.standardInput(
+                                    label: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5),
+                                      child: Text(
+                                        SharedLocalization
+                                            .getLocalization!().surveyFormName,
+                                      ),
                                     ),
-                                  ),
 
-                                  hintText: SharedLocalization
-                                      .getLocalization!().surveyWriteFormName,
-                                  isEnabled: false,
+                                    hintText: SharedLocalization
+                                        .getLocalization!().surveyWriteFormName,
+                                    isEnabled: false,
+                                  ),
+                                  validator: (value) {
+                                    return CustomValidators.isEmptyValidator(
+                                        value);
+                                  },
+                                  onChanged: (String val){
+                                    _viewModel.dynamicFormModel.formName =val;
+                                  },
                                 ),
-                                validator: (value) {
-                                  return CustomValidators.isEmptyValidator(
-                                      value);
-                                },
-                                onChanged: (String val){
-                                  _viewModel.dynamicFormModel.formName =val;
-                                },
-                              ),
-                             SizedBox(height: 8,),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                   Text(
-                                    '${SharedLocalization.getLocalization!().verifySite}',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  Switch(
-                                    value: _viewModel.validLocation,
-                                    activeColor: AppTheme.whiteColor ,
-                                    activeTrackColor: AppTheme.accentColor,
-                                    inactiveThumbColor: AppTheme.whiteColor,
-                                    inactiveTrackColor: const Color(0xffE5E5E5),
-                                    onChanged: (bool value) {
-                                      _viewModel.toggleLocation(value);
-                                    },
-                                  ),
-                                ],
-                              ),
+                               SizedBox(height: 8,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                     Text(
+                                      '${SharedLocalization.getLocalization!().verifySite}',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    Switch(
+                                      value: _viewModel.validLocation,
+                                      activeColor: AppTheme.whiteColor ,
+                                      activeTrackColor: AppTheme.accentColor,
+                                      inactiveThumbColor: AppTheme.whiteColor,
+                                      inactiveTrackColor: const Color(0xffE5E5E5),
+                                      onChanged: (bool value) {
+                                        _viewModel.toggleLocation(value);
+                                      },
+                                    ),
+                                  ],
+                                ),
 
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                   Text(
-                                    '${SharedLocalization.getLocalization!().showSurveyID}',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  Switch(
-                                    value: _viewModel.showSurveyID,
-                                    activeColor: AppTheme.whiteColor ,
-                                    activeTrackColor: AppTheme.accentColor,
-                                    inactiveThumbColor: AppTheme.whiteColor,
-                                    inactiveTrackColor: const Color(0xffE5E5E5),
-                                    onChanged: (bool value) {
-                                      _viewModel.toggleShowSurveyId(value);
-                                    },
-                                  ),
-                                ],
-                              ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                     Text(
+                                      '${SharedLocalization.getLocalization!().showSurveyID}',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    Switch(
+                                      value: _viewModel.showSurveyID,
+                                      activeColor: AppTheme.whiteColor ,
+                                      activeTrackColor: AppTheme.accentColor,
+                                      inactiveThumbColor: AppTheme.whiteColor,
+                                      inactiveTrackColor: const Color(0xffE5E5E5),
+                                      onChanged: (bool value) {
+                                        _viewModel.toggleShowSurveyId(value);
+                                      },
+                                    ),
+                                  ],
+                                ),
 
 
 
 
 
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: ReorderableListView.builder(
-                          itemCount: _viewModel.dynamicFormModel.questions.length,
-                          shrinkWrap: true,
-                          primary: false,
-                          onReorder: (oldIndex, newIndex) {
-                            setState(() {
-                              if (newIndex > oldIndex) newIndex -= 1;
-                              final item = _viewModel.dynamicFormModel.questions.removeAt(oldIndex);
-                              _viewModel.dynamicFormModel.questions.insert(newIndex, item);
-                            });
-                          },
-                          itemBuilder: (context, index) {
-                            return GestureDetector(
-                              key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Unique Key for ReorderableListView
-                              onTap: (){
-                                        editQuestionModel(
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: ReorderableListView.builder(
+                            itemCount: _viewModel.dynamicFormModel.questions.length,
+                            shrinkWrap: true,
+                            primary: false,
+                            onReorder: (oldIndex, newIndex) {
+                              setState(() {
+                                if (newIndex > oldIndex) newIndex -= 1;
+                                final item = _viewModel.dynamicFormModel.questions.removeAt(oldIndex);
+                                _viewModel.dynamicFormModel.questions.insert(newIndex, item);
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Unique Key for ReorderableListView
+                                onTap: (){
+                                          editQuestionModel(
 
-                                          AppShared.getFormItemTypeByIndex(_viewModel.dynamicFormModel.questions[index].questionType ?? 1),
-                                          _viewModel.dynamicFormModel.questions[index],
-                                          index,
-                                        );
-                              },
-                              child: Card(
-                                elevation: 4,
-                                color: AppColors.whiteColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                margin: EdgeInsets.only(bottom: 12),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      /// **Row: Drag Handle & Delete Button**
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(Icons.drag_handle, color: Colors.grey), // Drag Indicator
-                                              SizedBox(width: 8),
-                                              Text(
-                                                "Q${index + 1}",
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.deepPurple,
+                                            AppShared.getFormItemTypeByIndex(_viewModel.dynamicFormModel.questions[index].questionType ?? 1),
+                                            _viewModel.dynamicFormModel.questions[index],
+                                            index,
+                                          );
+                                },
+                                child: Card(
+                                  elevation: 4,
+                                  color: AppColors.whiteColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  margin: EdgeInsets.only(bottom: 12),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        /// **Row: Drag Handle & Delete Button**
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.drag_handle, color: Colors.grey), // Drag Indicator
+                                                SizedBox(width: 8),
+                                                Text(
+                                                  "Q${index + 1}",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.deepPurple,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
+                                              ],
+                                            ),
 
 
-                                          Row(
-                                            children: [
-                                              IconButton(
-                                                icon: Icon(Icons.hide_source, color:
-                                                (_viewModel.dynamicFormModel.questions[index].isHide??false)?
-                                                AppTheme.primaryColor:
-                                                Colors.grey),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _viewModel.dynamicFormModel.questions[index].isHide=
+                                            Row(
+                                              children: [
+                                                IconButton(
+                                                  icon: Icon(Icons.hide_source, color:
+                                                  (_viewModel.dynamicFormModel.questions[index].isHide??false)?
+                                                  AppTheme.primaryColor:
+                                                  Colors.grey),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _viewModel.dynamicFormModel.questions[index].isHide=
 
-                                                        !(_viewModel.dynamicFormModel.questions[index].isHide ?? false);
-                                                  });
-                                                },
-                                              ),
-                                              _viewModel.dynamicFormModel.questions[index].isUsed ?
-                                              SizedBox():
-                                              IconButton(
-                                                icon: Icon(Icons.close, color: Colors.redAccent),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _viewModel.dynamicFormModel.questions.removeAt(index);
-                                                  });
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-
-                                      /// **Question Title**
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                        child: Text(
-                                          _viewModel.dynamicFormModel.questions[index].question ?? '',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
-                                          ),
+                                                          !(_viewModel.dynamicFormModel.questions[index].isHide ?? false);
+                                                    });
+                                                  },
+                                                ),
+                                                _viewModel.dynamicFormModel.questions[index].isUsed ?
+                                                SizedBox():
+                                                IconButton(
+                                                  icon: Icon(Icons.close, color: Colors.redAccent),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _viewModel.dynamicFormModel.questions.removeAt(index);
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      ),
 
-                                      /// **Question Type & Required Indicator**
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            AppShared.questionTypeList[_viewModel.dynamicFormModel.questions[index].questionType??0].name,                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.deepPurple,
-                                              fontWeight: FontWeight.bold,
+                                        /// **Question Title**
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: Text(
+                                            _viewModel.dynamicFormModel.questions[index].question ?? '',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black87,
                                             ),
                                           ),
-                                          if (_viewModel.dynamicFormModel.questions[index].isRequired ?? false)
+                                        ),
+
+                                        /// **Question Type & Required Indicator**
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
                                             Text(
-                                              "${SharedLocalization.getLocalization!().surveyIsRequired}",
-                                              style: TextStyle(
-                                                color: Colors.redAccent,
+                                              AppShared.questionTypeList[_viewModel.dynamicFormModel.questions[index].questionType??0].name,                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.deepPurple,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                        ],
-                                      ),
-                                    ],
+                                            if (_viewModel.dynamicFormModel.questions[index].isRequired ?? false)
+                                              Text(
+                                                "${SharedLocalization.getLocalization!().surveyIsRequired}",
+                                                style: TextStyle(
+                                                  color: Colors.redAccent,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                  // ReorderableListView.builder(
-                  //   itemCount: _viewModel.dynamicFormModel.questions.length,
-                  //   shrinkWrap: true,
-                  //   primary: false,
-                  //   onReorder: (oldIndex, newIndex) {
-                  //     setState(() {
-                  //       if (newIndex > oldIndex) {
-                  //         newIndex -= 1;
-                  //       }
-                  //       final item = _viewModel.dynamicFormModel.questions.removeAt(oldIndex);
-                  //       _viewModel.dynamicFormModel.questions.insert(newIndex, item);
-                  //     });
-                  //   },
-                  //   itemBuilder: (context, index) {
-                  //     return GestureDetector(
-                  //       key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Ensure unique keys
-                  //       onTap: () {
-                  //         editQuestionModel(
-                  //           _viewModel.dynamicFormModel.questions[index].questionType ?? FormItemType.ShortText,
-                  //           _viewModel.dynamicFormModel.questions[index],
-                  //           index,
-                  //         );
-                  //       },
-                  //       child: Padding(
-                  //         padding: const EdgeInsets.all(8.0),
-                  //         child: Container(
-                  //           decoration: BoxDecoration(
-                  //             borderRadius: BorderRadius.circular(8.0),
-                  //             border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                  //           ),
-                  //           child: Padding(
-                  //             padding: EdgeInsets.symmetric(horizontal: 10.0),
-                  //             child: Column(
-                  //               mainAxisAlignment: MainAxisAlignment.start,
-                  //               crossAxisAlignment: CrossAxisAlignment.start,
-                  //               children: [
-                  //                 SizedBox(height: 12),
-                  //                 Row(
-                  //                   crossAxisAlignment: CrossAxisAlignment.center,
-                  //                   mainAxisAlignment: MainAxisAlignment.end,
-                  //                   children: [
-                  //                     GestureDetector(
-                  //                       child: Icon(Icons.close, color: AppTheme.errorColor),
-                  //                       onTap: () {
-                  //                         _viewModel.dynamicFormModel.questions.removeAt(index);
-                  //                         setState(() {});
-                  //                       },
-                  //                     ),
-                  //                   ],
-                  //                 ),
-                  //                 Row(
-                  //                   crossAxisAlignment: CrossAxisAlignment.center,
-                  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //                   children: [
-                  //                     Row(
-                  //                       crossAxisAlignment: CrossAxisAlignment.center,
-                  //                       mainAxisAlignment: MainAxisAlignment.start,
-                  //                       children: [
-                  //                         Container(
-                  //                           width: MediaQuery.of(context).size.width * 0.6,
-                  //                           child: Text(
-                  //                             "${_viewModel.dynamicFormModel.questions[index].question}",
-                  //                             style: TextStyle(
-                  //                               color: Colors.black,
-                  //                               fontSize: 16,
-                  //                               fontWeight: FontWeight.bold,
-                  //                             ),
-                  //                           ),
-                  //                         ),
-                  //                         SizedBox(width: 6),
-                  //                         Text(
-                  //                           _viewModel.dynamicFormModel.questions[index].isRequired ? '*' : '',
-                  //                           style: TextStyle(
-                  //                             color: Colors.red,
-                  //                             fontSize: 14,
-                  //                             fontWeight: FontWeight.bold,
-                  //                           ),
-                  //                         ),
-                  //                       ],
-                  //                     ),
-                  //                     Text(
-                  //                       _viewModel.dynamicFormModel.questions[index].questionType
-                  //                           .toString()
-                  //                           .replaceAll('FormItemType.', ''),
-                  //                       style: TextStyle(
-                  //                         fontSize: 16,
-                  //                         fontWeight: FontWeight.bold,
-                  //                       ),
-                  //                     ),
-                  //                   ],
-                  //                 ),
-                  //                 // if (_viewModel.dynamicFormModel.questions[index].options.length > 2)
-                  //                 //   Container(
-                  //                 //     width: double.infinity,
-                  //                 //     height: 24,
-                  //                 //     color: Colors.transparent,
-                  //                 //     child: ListView.builder(
-                  //                 //       itemCount: _viewModel.dynamicFormModel.questions[index].options.length,
-                  //                 //       scrollDirection: Axis.horizontal,
-                  //                 //       itemBuilder: (context, i) {
-                  //                 //         return Text(
-                  //                 //           "${_viewModel.dynamicFormModel.questions[index].options[i].optionController.text}, ",
-                  //                 //           style: TextStyle(
-                  //                 //             color: Colors.black,
-                  //                 //             fontSize: 16,
-                  //                 //             fontWeight: FontWeight.bold,
-                  //                 //           ),
-                  //                 //         );
-                  //                 //       },
-                  //                 //     ),
-                  //                 //   ),
-                  //                 SizedBox(height: 12),
-                  //               ],
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     );
-                  //   },
-                  // )
+                    // ReorderableListView.builder(
+                    //   itemCount: _viewModel.dynamicFormModel.questions.length,
+                    //   shrinkWrap: true,
+                    //   primary: false,
+                    //   onReorder: (oldIndex, newIndex) {
+                    //     setState(() {
+                    //       if (newIndex > oldIndex) {
+                    //         newIndex -= 1;
+                    //       }
+                    //       final item = _viewModel.dynamicFormModel.questions.removeAt(oldIndex);
+                    //       _viewModel.dynamicFormModel.questions.insert(newIndex, item);
+                    //     });
+                    //   },
+                    //   itemBuilder: (context, index) {
+                    //     return GestureDetector(
+                    //       key: ValueKey(_viewModel.dynamicFormModel.questions[index]), // Ensure unique keys
+                    //       onTap: () {
+                    //         editQuestionModel(
+                    //           _viewModel.dynamicFormModel.questions[index].questionType ?? FormItemType.ShortText,
+                    //           _viewModel.dynamicFormModel.questions[index],
+                    //           index,
+                    //         );
+                    //       },
+                    //       child: Padding(
+                    //         padding: const EdgeInsets.all(8.0),
+                    //         child: Container(
+                    //           decoration: BoxDecoration(
+                    //             borderRadius: BorderRadius.circular(8.0),
+                    //             border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                    //           ),
+                    //           child: Padding(
+                    //             padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    //             child: Column(
+                    //               mainAxisAlignment: MainAxisAlignment.start,
+                    //               crossAxisAlignment: CrossAxisAlignment.start,
+                    //               children: [
+                    //                 SizedBox(height: 12),
+                    //                 Row(
+                    //                   crossAxisAlignment: CrossAxisAlignment.center,
+                    //                   mainAxisAlignment: MainAxisAlignment.end,
+                    //                   children: [
+                    //                     GestureDetector(
+                    //                       child: Icon(Icons.close, color: AppTheme.errorColor),
+                    //                       onTap: () {
+                    //                         _viewModel.dynamicFormModel.questions.removeAt(index);
+                    //                         setState(() {});
+                    //                       },
+                    //                     ),
+                    //                   ],
+                    //                 ),
+                    //                 Row(
+                    //                   crossAxisAlignment: CrossAxisAlignment.center,
+                    //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //                   children: [
+                    //                     Row(
+                    //                       crossAxisAlignment: CrossAxisAlignment.center,
+                    //                       mainAxisAlignment: MainAxisAlignment.start,
+                    //                       children: [
+                    //                         Container(
+                    //                           width: MediaQuery.of(context).size.width * 0.6,
+                    //                           child: Text(
+                    //                             "${_viewModel.dynamicFormModel.questions[index].question}",
+                    //                             style: TextStyle(
+                    //                               color: Colors.black,
+                    //                               fontSize: 16,
+                    //                               fontWeight: FontWeight.bold,
+                    //                             ),
+                    //                           ),
+                    //                         ),
+                    //                         SizedBox(width: 6),
+                    //                         Text(
+                    //                           _viewModel.dynamicFormModel.questions[index].isRequired ? '*' : '',
+                    //                           style: TextStyle(
+                    //                             color: Colors.red,
+                    //                             fontSize: 14,
+                    //                             fontWeight: FontWeight.bold,
+                    //                           ),
+                    //                         ),
+                    //                       ],
+                    //                     ),
+                    //                     Text(
+                    //                       _viewModel.dynamicFormModel.questions[index].questionType
+                    //                           .toString()
+                    //                           .replaceAll('FormItemType.', ''),
+                    //                       style: TextStyle(
+                    //                         fontSize: 16,
+                    //                         fontWeight: FontWeight.bold,
+                    //                       ),
+                    //                     ),
+                    //                   ],
+                    //                 ),
+                    //                 // if (_viewModel.dynamicFormModel.questions[index].options.length > 2)
+                    //                 //   Container(
+                    //                 //     width: double.infinity,
+                    //                 //     height: 24,
+                    //                 //     color: Colors.transparent,
+                    //                 //     child: ListView.builder(
+                    //                 //       itemCount: _viewModel.dynamicFormModel.questions[index].options.length,
+                    //                 //       scrollDirection: Axis.horizontal,
+                    //                 //       itemBuilder: (context, i) {
+                    //                 //         return Text(
+                    //                 //           "${_viewModel.dynamicFormModel.questions[index].options[i].optionController.text}, ",
+                    //                 //           style: TextStyle(
+                    //                 //             color: Colors.black,
+                    //                 //             fontSize: 16,
+                    //                 //             fontWeight: FontWeight.bold,
+                    //                 //           ),
+                    //                 //         );
+                    //                 //       },
+                    //                 //     ),
+                    //                 //   ),
+                    //                 SizedBox(height: 12),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     );
+                    //   },
+                    // )
 
-                  ],
-                  ),
-                ):const SizedBox();
-            })
+                    ],
+                    ),
+                  ):const SizedBox();
+              })
 
-      ),
-      bottomNavigationBar:Padding(
-        padding: const EdgeInsets.only(left: 12.0,right:12.0,bottom: 12),
-        child: ElevatedButton(
-          onPressed: () async {
-            if(_formKey.currentState!.validate()){
+        ),
+        bottomNavigationBar:Padding(
+          padding: const EdgeInsets.only(left: 12.0,right:12.0,bottom: 12),
+          child: ElevatedButton(
+            onPressed: () async {
+              if(_formKey.currentState!.validate()){
 
-              if(_viewModel.dynamicFormModel.questions.isNotEmpty){
-                print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
-                if(widget.isEdit){
-
+                if(_viewModel.dynamicFormModel.questions.isNotEmpty){
+                  print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
+                  if(widget.isEdit){
 
 
-                  FormModel res = await _viewModel.updateForm(
-                      _viewModel.dynamicFormModel.id,
-                      FormModel(
-                        id: _viewModel.dynamicFormModel.id,
+
+                    FormModel res = await _viewModel.updateForm(
+                        _viewModel.dynamicFormModel.id,
+                        FormModel(
+                          id: _viewModel.dynamicFormModel.id,
+                        formName: _viewModel.formName.text,
+                        validLocation:_viewModel.validLocation,
+                        showSurveyId: _viewModel.showSurveyID,
+                        questionnaireTime:_viewModel.dynamicFormModel.questionnaireTime,
+                          isTemplate: true,
+                        isActive: true,
+                        questions: _viewModel.dynamicFormModel.questions,
+                        originalFormMasterId: _viewModel.dynamicFormModel.originalFormMasterId,
+                        isUsed: true
+                    ));
+
+                    allForms.items?[widget.formIndex ?? 0]=FormModel(
+                        id: res.id,
+                        formName: res.formName,
+                        validLocation: res.validLocation,
+                        showSurveyId: res.showSurveyId,
+                        questions: res.questions,
+                      questionnaireTime: res.questionnaireTime,
+                      questionsCount : res.questionsCount,
+                      originalFormMasterId: res.originalFormMasterId
+
+                    );
+                  }
+                  else{
+                    FormModel res = await _viewModel.addForm(FormModel(
+                      // id: "",
                       formName: _viewModel.formName.text,
                       validLocation:_viewModel.validLocation,
                       showSurveyId: _viewModel.showSurveyID,
-                      questionnaireTime:_viewModel.dynamicFormModel.questionnaireTime,
-                        isTemplate: true,
+                      questionnaireTime:DateTime.now(),
+                      isTemplate: true,
                       isActive: true,
                       questions: _viewModel.dynamicFormModel.questions,
-                      originalFormMasterId: _viewModel.dynamicFormModel.originalFormMasterId,
+                      originalFormMasterId: const Uuid().v1(),
                       isUsed: true
-                  ));
-
-                  allForms.items?[widget.formIndex ?? 0]=FormModel(
-                      id: res.id,
-                      formName: res.formName,
-                      validLocation: res.validLocation,
-                      showSurveyId: res.showSurveyId,
-                      questions: res.questions,
-                    questionnaireTime: res.questionnaireTime,
-                    questionsCount : res.questionsCount,
-                    originalFormMasterId: res.originalFormMasterId
-
-                  );
+                    ));
+                    allForms.items?.add(FormModel(
+                        id: res.id,
+                        formName: _viewModel.formName.text,
+                        validLocation: _viewModel.validLocation,
+                        showSurveyId: _viewModel.showSurveyID,
+                        questionsCount : res.questionsCount,
+                        questions: _viewModel.dynamicFormModel.questions));
+                  }
+                 Navigator.pop(context);
+                }else{
+                  Toaster.error(
+                      content: Text(SharedLocalization
+                          .getLocalization!().survey_question_number_error));
                 }
-                else{
-                  FormModel res = await _viewModel.addForm(FormModel(
-                    // id: "",
-                    formName: _viewModel.formName.text,
-                    validLocation:_viewModel.validLocation,
-                    showSurveyId: _viewModel.showSurveyID,
-                    questionnaireTime:DateTime.now(),
-                    isTemplate: true,
-                    isActive: true,
-                    questions: _viewModel.dynamicFormModel.questions,
-                    originalFormMasterId: const Uuid().v1(),
-                    isUsed: true
-                  ));
-                  allForms.items?.add(FormModel(
-                      id: res.id,
-                      formName: _viewModel.formName.text,
-                      validLocation: _viewModel.validLocation,
-                      showSurveyId: _viewModel.showSurveyID,
-                      questionsCount : res.questionsCount,
-                      questions: _viewModel.dynamicFormModel.questions));
-                }
-               Navigator.pop(context);
-              }else{
-                Toaster.error(
-                    content: Text(SharedLocalization
-                        .getLocalization!().survey_question_number_error));
+
               }
-
-            }
-          },
-          child:  Text(
-            widget.isEdit?
-            SharedLocalization.getLocalization!().surveyEdit:
-            SharedLocalization.getLocalization!().save,
+            },
+            child:  Text(
+              widget.isEdit?
+              SharedLocalization.getLocalization!().surveyEdit:
+              SharedLocalization.getLocalization!().save,
+            ),
           ),
         ),
-      ),
-      floatingActionButton:  FloatingActionButton(
-          elevation: 0.0,
-        //  backgroundColor: AppColors.blackColor,
-          onPressed: (){
-            selectQuestionType();
-          },
-          child:  const Icon(Icons.add,color: Colors.white,)
+        floatingActionButton:  FloatingActionButton(
+            elevation: 0.0,
+          //  backgroundColor: AppColors.blackColor,
+            onPressed: (){
+              selectQuestionType();
+            },
+            child:  const Icon(Icons.add,color: Colors.white,)
+        ),
       ),
     );
   }
