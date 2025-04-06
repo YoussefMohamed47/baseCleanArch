@@ -837,7 +837,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 
 
                   if((widget.validLocation)){
-                    print("wkkkkkkkkkkk ${widget.surveyId}");
+                    print("wkkkkkkkkkkk ...........${widget.surveyId}");
                     LoaderService.show();
                     currentSurvey.id =widget.surveyId;
                     Future.microtask(() async {

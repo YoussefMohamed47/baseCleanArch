@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:questionnaire/app/di.dart';
 import 'package:questionnaire/domain/model/make_form_template/questionaires_item.dart';
 import 'package:questionnaire/presentation/resources/base_page_route.dart';
@@ -15,6 +16,7 @@ import 'package:questionnaire/utils/colors/appColors.dart';
 import 'package:shared_module/Widget/app_scaffold.dart';
 import 'package:shared_module/Widget/no_items_found_indicator.wdiget.dart';
 import 'package:shared_module/Widget/primary_container.widget.dart';
+import 'package:shared_module/Widget/toaster.widget.dart';
 import 'package:shared_module/localization/shared.localization.dart';
 import 'package:shared_module/theme/app.theme.dart';
 import 'package:shared_module/theme/shared.icons.dart';
@@ -366,8 +368,65 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context ,index){
                         return GestureDetector(
-                          onTap: (){
+                          onTap: () async {
+                            if(forms[index].validLocation ?? false){
+                             bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                             if(serviceEnabled){
+                               Navigator.push(
+                                   context,
+                                   BasePageRoute(
+                                       builder: (context) => QuestionairesInfoView(
+                                         formName: forms[index].formName ?? '',
+                                         formItems:  forms[index].questions ?? [],
+                                         // customerName:forms[index].customerName,
+                                         validLocation: forms[index].validLocation ?? false,
+                                         surveyId: forms[index].id ?? '',
+                                         code: forms[index].code ?? 'لا يوجد كود للعرض',
+                                         showSurveyId: forms[index].showSurveyId ?? false,
+                                         questionnaireTime: forms[index].questionnaireTime ?? DateTime.now(),
+                                         isForm: false ,
 
+                                       )));
+                             }else{
+
+                               Toaster.error(
+                                   context: context,
+                                   content: Text("${SharedLocalization.getLocalization!().gpsServiceError}"));
+                              // try{
+                              //    // Open the location settings screen
+                              //     bool opened = await Geolocator.openLocationSettings();
+                              //     if (opened) {
+                              //       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                              //       if(serviceEnabled){
+                              //         print("Settings screen opened.");
+                              //         Navigator.push(
+                              //             context,
+                              //             BasePageRoute(
+                              //                 builder: (context) => QuestionairesInfoView(
+                              //                   formName: forms[index].formName ?? '',
+                              //                   formItems:  forms[index].questions ?? [],
+                              //                   // customerName:forms[index].customerName,
+                              //                   validLocation: forms[index].validLocation ?? false,
+                              //                   surveyId: forms[index].id ?? '',
+                              //                   code: forms[index].code ?? 'لا يوجد كود للعرض',
+                              //                   showSurveyId: forms[index].showSurveyId ?? false,
+                              //                   questionnaireTime: forms[index].questionnaireTime ?? DateTime.now(),
+                              //                   isForm: false ,
+                              //
+                              //                 )));
+                              //       }else{
+                              //         print("Failed to enable service");
+                              //
+                              //       }
+                              //
+                              //     } else {
+                              //       print("Failed to open settings.");
+                              //     }
+                              // }catch(e){
+                              //   print("kkkkkkkkkkkkkkk $e");
+                              // }
+                             }
+                            }else{
                               Navigator.push(
                                   context,
                                   BasePageRoute(
@@ -383,9 +442,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                         isForm: false ,
 
                                       )));
-                            // }else{
-                            //
-                            // }
+                            }
                           },
                           child: PrimaryContainer(
 
