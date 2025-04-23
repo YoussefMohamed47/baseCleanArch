@@ -241,7 +241,7 @@ class _FormsScreenState extends State<FormsScreen> {
                                                print("forms.items?[index].isActive : ${forms.items?[index].isActive}");
 
                                                if(allForms.items?[index] != null){
-                                                 allForms.items![index].isActive = !(allForms.items?[index].isActive ?? false);
+                                                 allForms.items![index].isActive = !(allForms.items?[index].isActive ?? true);
                                                  FormModel res= await  _viewModel.changeFormActiveStatus(id: allForms.items?[index].id ?? '', input: allForms.items![index]);
                                                 // allForms.items?.removeAt(index);
                                                  setState(() {});

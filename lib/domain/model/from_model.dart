@@ -42,7 +42,7 @@ class FormModel {
       formName: json['formName'],
       validLocation: json['validLocation'],
       showSurveyId: json['showSurveyId'],
-      questionnaireTime: json['questionnaireTime'] != null ? DateTime.parse(json['questionnaireTime']) : null,
+      questionnaireTime: json['questionnaireTime'] != null ? DateTime.parse(json['questionnaireTime']).toLocal() : null,
       questions: json['questions'] != null ? (json['questions'] as List).map((q) => Question.fromJson(q)).toList() : null,
       questionsCount: json['questionsCount'] ?? 0,
       isUsed: json['isUsed'],
@@ -69,7 +69,7 @@ class FormModel {
       'isTemplate': isTemplate,
       'lat':lat,
       'lng':lng,
-      'originalFormMasterId': originalFormMasterId,
+      'originalFormMasterId': (isTemplate ?? true) ? null:originalFormMasterId,
     };
   }
 }

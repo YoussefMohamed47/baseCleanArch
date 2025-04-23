@@ -41,8 +41,8 @@ class MakeFormTemplateViewModel extends BaseViewModel
   TextEditingController formName = TextEditingController();
   ClientItemModel? selectedFormId;
 
-  bool validLocation = false;
-  bool showSurveyID = false;
+  bool validLocation = true;
+  bool showSurveyID = true;
 
   toggleLocation(bool val){
     validLocation =val;
@@ -92,8 +92,10 @@ class MakeFormTemplateViewModel extends BaseViewModel
     dynamicFormModel = form;
     print("dynamicFormModel.customerName ${dynamicFormModel.showSurveyId}");
     formName.text= dynamicFormModel.formName ?? '';
-    validLocation = dynamicFormModel.validLocation ?? false;
-    showSurveyID = dynamicFormModel.showSurveyId ?? false;
+    // validLocation = dynamicFormModel.validLocation ?? true;
+    // showSurveyID = dynamicFormModel.showSurveyId ?? true;
+    validLocation = true;
+    showSurveyID =  true;
     dynamicFormModel.originalFormMasterId = form.originalFormMasterId ;
 
 
@@ -104,8 +106,10 @@ class MakeFormTemplateViewModel extends BaseViewModel
       dynamicFormModel.questions = res.questions ?? [];
       dynamicFormModel.questionnaireTime = res.questionnaireTime;
       formName.text= res.formName ?? '';
-      validLocation = res.validLocation ?? false;
-      showSurveyID = res.showSurveyId ?? false;
+      // validLocation = res.validLocation ?? true;
+      // showSurveyID = res.showSurveyId ?? true;
+      validLocation =  true;
+      showSurveyID =  true;
       dynamicFormModel.originalFormMasterId = res.originalFormMasterId ;
 
     }

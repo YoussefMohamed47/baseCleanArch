@@ -242,7 +242,19 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                       SharedLocalization.getLocalization!().date:
                                       selectedQuestionType.index==7?
                                       SharedLocalization.getLocalization!().time:
-                                          ""
+
+                                      selectedQuestionType.index==8?
+                                      SharedLocalization.getLocalization!().attachment:
+
+                                      selectedQuestionType.index==9?
+                                      SharedLocalization.getLocalization!().location:
+
+                                      selectedQuestionType.index==10?
+                                      SharedLocalization.getLocalization!().client:
+                                      selectedQuestionType.index==11?
+                                      SharedLocalization.getLocalization!().clientSignature:
+
+                                      ""
 
                                       }',style: TextStyle(
                                         fontWeight: FontWeight.w500,
@@ -687,11 +699,45 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
                                         ),),
 
-                                        Text('   ${selectedQuestionType.name}',style: TextStyle(
+                                        Text('   ${selectedQuestionType.index==1?
+
+                                        SharedLocalization.getLocalization!().shortText:
+                                        selectedQuestionType.index==0?
+                                        SharedLocalization.getLocalization!().longText:
+                                        selectedQuestionType.index==2?
+                                        SharedLocalization.getLocalization!().singleChoice:
+
+                                        selectedQuestionType.index==3?
+                                        SharedLocalization.getLocalization!().multiChoice:
+
+                                        selectedQuestionType.index==4?
+                                        SharedLocalization.getLocalization!().number:
+
+                                        selectedQuestionType.index==5?
+                                        SharedLocalization.getLocalization!().float:
+
+                                        selectedQuestionType.index==6?
+                                        SharedLocalization.getLocalization!().date:
+                                        selectedQuestionType.index==7?
+                                        SharedLocalization.getLocalization!().time:
+
+                                        selectedQuestionType.index==8?
+                                        SharedLocalization.getLocalization!().attachment:
+
+                                        selectedQuestionType.index==9?
+                                        SharedLocalization.getLocalization!().location:
+
+                                        selectedQuestionType.index==10?
+                                        SharedLocalization.getLocalization!().client:
+                                        selectedQuestionType.index==11?
+                                        SharedLocalization.getLocalization!().clientSignature:
+
+                                        ""
+
+                                        }',style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14,
                                         ),),
-
 
                                       ],
                                     ),
@@ -993,7 +1039,8 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
 
                                                   },
                                                 ),
-                                                (options?[index].isUsed  ?? false) ?
+                                               // (options?[index].isUsed  ?? false) ?
+                                                _viewModel.dynamicFormModel.questions[questionIndex].isUsed?
                                                 const SizedBox():
                                                 GestureDetector(
                                                   child: Padding(
@@ -1187,7 +1234,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                       inactiveThumbColor: AppTheme.whiteColor,
                                       inactiveTrackColor: const Color(0xffE5E5E5),
                                       onChanged: (bool value) {
-                                        _viewModel.toggleLocation(value);
+                                       // _viewModel.toggleLocation(value);
                                       },
                                     ),
                                   ],
@@ -1207,7 +1254,7 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                       inactiveThumbColor: AppTheme.whiteColor,
                                       inactiveTrackColor: const Color(0xffE5E5E5),
                                       onChanged: (bool value) {
-                                        _viewModel.toggleShowSurveyId(value);
+                                        //_viewModel.toggleShowSurveyId(value);
                                       },
                                     ),
                                   ],
@@ -1293,9 +1340,9 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
                                                   },
                                                 ),
                                                 _viewModel.dynamicFormModel.questions[index].isUsed ?
-                                                SizedBox():
+                                                const SizedBox():
                                                 IconButton(
-                                                  icon: Icon(Icons.close, color: Colors.redAccent),
+                                                  icon: const Icon(Icons.close, color: Colors.redAccent),
                                                   onPressed: () {
                                                     setState(() {
                                                       _viewModel.dynamicFormModel.questions.removeAt(index);
@@ -1480,14 +1527,14 @@ class _BuildFormsScreensState extends State<BuildFormsScreens> {
           padding: const EdgeInsets.only(left: 12.0,right:12.0,bottom: 12),
           child: ElevatedButton(
             onPressed: () async {
+
+              print(" _viewModel.validLocation ${ _viewModel.validLocation}");
+              print(" _viewModel.showSurveyID ${ _viewModel.showSurveyID}");
+
               if(_formKey.currentState!.validate()){
 
                 if(_viewModel.dynamicFormModel.questions.isNotEmpty){
-                  print(" _viewModel.selectedFormId ${ _viewModel.selectedFormId?.name}");
                   if(widget.isEdit){
-
-
-
                     FormModel res = await _viewModel.updateForm(
                         _viewModel.dynamicFormModel.id,
                         FormModel(

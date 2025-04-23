@@ -708,13 +708,13 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
 
 
 
-                      const SizedBox(height: 22,),
-
+                      SizedBox(height: widget.isForm?0:22,),
+                      widget.isForm?const SizedBox():
                       Container(
                         width: double.infinity,
 
                         decoration: BoxDecoration(
-                            color: Colors.white
+                            color: Colors.grey.withOpacity(0.3)
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
@@ -831,7 +831,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
               // log("formItemsLocal ${json.encode(formItemsLocal)}");
               if (_formKey.currentState!.validate()) {
 
-                print("widget.isForm :::: ${widget.isForm}");
+                print("widget.validLocation :::: ${widget.validLocation}");
 
                 if(widget.isForm){
 
@@ -856,7 +856,8 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                         currentSurvey.lng=long.toString();
                         currentSurvey.id=null;
                         currentSurvey.isTemplate=false;
-                      FormModel res =  await _viewModel.addSurvey(currentSurvey);
+                        currentSurvey.originalFormMasterId=widget.surveyId;
+                        FormModel res =  await _viewModel.addSurvey(currentSurvey);
                       // allQuestionaires.add(res);
                         LoaderService.hide();
                         filteredQuestionnaires.value = [...filteredQuestionnaires.value, res];
@@ -866,6 +867,10 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                         Navigator.pop(context);
 
                       } catch (e) {
+                        LoaderService.hide();
+                        Toaster.error(
+                            context: context,
+                            content: Text(e.toString()));
                         print("Error: $e");
                       }
                     });
@@ -877,6 +882,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                     currentSurvey.questions=formItemsLocal;
                     currentSurvey.id=null;
                     currentSurvey.isTemplate=false;
+                    currentSurvey.originalFormMasterId=widget.surveyId;
                    FormModel res = await _viewModel.addSurvey(currentSurvey);
                     LoaderService.hide();
                     // allQuestionaires.add(res);
@@ -905,12 +911,16 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
                         currentSurvey.questions=formItemsLocal;
                         currentSurvey.lat=lat.toString();
                         currentSurvey.lng=long.toString();
-
+                        currentSurvey.originalFormMasterId=widget.surveyId;
                         await _viewModel.submitSurvey(currentSurvey);
                         LoaderService.hide();
                         Navigator.pop(context);
                       } catch (e) {
                         print("Error: $e");
+                        LoaderService.hide();
+                        Toaster.error(
+                            context: context,
+                            content: Text(e.toString()));
                       }
                     });
                   }else{
@@ -1139,9 +1149,9 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         // formItem.answer="39";
         Option? selectedOption;
         print("formItem.answer::::::::: ${formItem.answer} ");
-        if (formItem.answer != '' && formItem.answer != null) {
+        if (formItem.answer != '' && formItem.answer != null  && formItem.answer != "null") {
           selectedOption = options.firstWhere(
-                (opt) => opt.id == int.tryParse(formItem.answer ?? ''),
+                (opt) => opt.option == formItem.answer,
             orElse: () => Option(id: -1, option: ''), // Provide a default invalid Option
           );
 
@@ -1171,7 +1181,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
               items: dropdownItems,
               onChanged: (value) {
                 _formData[formItem.question] = value;
-                formItem.answer=value?.id?.toString();
+                formItem.answer=value?.option?.toString();
                 print(" formItem.answer>>>>>>> ${ formItem.answer}");
               },
               validator: (value) {
@@ -1669,7 +1679,7 @@ class _QuestionairesInfoViewState extends State<QuestionairesInfoView> {
         );
       case FormItemType.Client:
         CustomerOutputModel answer;
-        if(formItem.answer != null &&formItem.answer != ''){
+        if(formItem.answer != null &&formItem.answer != ''&&formItem.answer != "null"){
 
           // Parse JSON to Map
           // Map<String, dynamic> jsonMap = jsonDecode(formItem.answer.toString());

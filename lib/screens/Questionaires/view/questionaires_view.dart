@@ -369,7 +369,7 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                       itemBuilder: (context ,index){
                         return GestureDetector(
                           onTap: () async {
-                            if(forms[index].validLocation ?? false){
+                            if(forms[index].validLocation ?? true){
                              bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
                              if(serviceEnabled){
                                Navigator.push(
@@ -379,10 +379,10 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                          formName: forms[index].formName ?? '',
                                          formItems:  forms[index].questions ?? [],
                                          // customerName:forms[index].customerName,
-                                         validLocation: forms[index].validLocation ?? false,
+                                         validLocation: forms[index].validLocation ?? true,
                                          surveyId: forms[index].id ?? '',
                                          code: forms[index].code ?? 'لا يوجد كود للعرض',
-                                         showSurveyId: forms[index].showSurveyId ?? false,
+                                         showSurveyId: forms[index].showSurveyId ?? true,
                                          questionnaireTime: forms[index].questionnaireTime ?? DateTime.now(),
                                          isForm: false ,
 
@@ -434,10 +434,10 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                                         formName: forms[index].formName ?? '',
                                         formItems:  forms[index].questions ?? [],
                                         // customerName:forms[index].customerName,
-                                        validLocation: forms[index].validLocation ?? false,
+                                        validLocation: forms[index].validLocation ?? true,
                                         surveyId: forms[index].id ?? '',
                                         code: forms[index].code ?? 'لا يوجد كود للعرض',
-                                        showSurveyId: forms[index].showSurveyId ?? false,
+                                        showSurveyId: forms[index].showSurveyId ?? true,
                                         questionnaireTime: forms[index].questionnaireTime ?? DateTime.now(),
                                         isForm: false ,
 
@@ -525,6 +525,8 @@ class _QuestionairesViewState extends State<QuestionairesView> {
           //  backgroundColor: AppColors.blackColor,
           onPressed: () async {
             //addQuestionaires(data);
+            print("get all forms 00000000000000000000");
+            print("get all forms ${_viewModel}");
             await Navigator.push(
                 context,
                 BasePageRoute(
@@ -532,9 +534,9 @@ class _QuestionairesViewState extends State<QuestionairesView> {
                      // data: data,
                       questionViewModel: _viewModel,
                     )));
-            setState(() {
-
-            });
+            // setState(() {
+            //
+            // });
 
           },
           child:  const Icon(Icons.add,color: Colors.white,)
